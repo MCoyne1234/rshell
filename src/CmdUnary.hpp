@@ -35,7 +35,7 @@ public:
     {
         std::string ret = executable;
         for (int i = 0; i < argList.size(); i++)
-            ret += argList[i];
+            ret += " " + argList[i];
         return ret;
     }
 };
