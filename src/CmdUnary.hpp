@@ -9,14 +9,17 @@ private:
     Executor* executor;
 
 public:
-    CmdUnary(std::string executable,
-             std::vector<std::string> argList)
-            : executable(executable), argList(argList)
-    {}
+    CmdUnary(std::vector<std::string> rawCmd,
+             Executor* executor = nullptr)
+            : executor(executor)
+    {
+        executable = rawCmd.at(0);
+        argList = std::vector<string>(rawCmd.begin() + 1, rawCmd.end());
+    }
 
     CmdUnary(std::string executable,
              std::vector<std::string> argList,
-             Executor* executor)
+             Executor* executor = nullptr)
             : executable(executable), argList(argList), executor(executor)
     {}
 
