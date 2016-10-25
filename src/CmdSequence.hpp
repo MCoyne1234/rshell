@@ -3,10 +3,11 @@
 
 class CmdSequence : public CmdBase
 {
-    typedef std::vector<CmdBase*>::const_iterator CmdIterator;
+    typedef std::vector<CmdBase*> CmdVector;
+    typedef CmdVector::const_iterator CmdIterator;
 
 private:
-    std::vector<CmdBase*> cmds;
+    CmdVector cmds;
 
 public:
     void addCmd(CmdBase* cmd) { cmds.push_back(cmd); }
