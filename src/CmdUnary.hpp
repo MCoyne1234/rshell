@@ -10,7 +10,7 @@ private:
 
 public:
     CmdUnary(std::vector<std::string> rawCmd,
-             Executor* executor = nullptr)
+             Executor* executor = NULL)
             : executor(executor)
     {
         executable = rawCmd.at(0);
@@ -19,7 +19,7 @@ public:
 
     CmdUnary(std::string executable,
              std::vector<std::string> argList,
-             Executor* executor = nullptr)
+             Executor* executor = NULL)
             : executable(executable), argList(argList), executor(executor)
     {}
 
