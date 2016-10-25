@@ -7,6 +7,12 @@ protected:
     CmdBase *leftCmd, *rightCmd;
 
 public:
+    CmdBinary() {}
+    CmdBinary(CmdBase* leftCmd,
+              CmdBase* rightCmd)
+            : leftCmd(leftCmd), rightCmd(rightCmd)
+    {}
+
     CmdBase *getLeftCmd() const { return leftCmd; }
     void setLeftCmd(CmdBase *cmd) { leftCmd = cmd; }
 
@@ -19,6 +25,12 @@ public:
 class CmdAnd : public CmdBinary
 {
 public:
+    CmdAnd() {}
+    CmdAnd(CmdBase* leftCmd,
+           CmdBase* rightCmd)
+            : CmdBinary(leftCmd, rightCmd)
+    {}
+
     int execute()
     {
         int status = leftCmd->execute();
@@ -30,6 +42,12 @@ public:
 class CmdOr : public CmdBinary
 {
 public:
+    CmdOr() {}
+    CmdOr(CmdBase* leftCmd,
+          CmdBase* rightCmd)
+            : CmdBinary(leftCmd, rightCmd)
+    {}
+
     int execute()
     {
         int status = leftCmd->execute();
