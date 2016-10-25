@@ -2,6 +2,7 @@
 #include <string>
 #include <stack>
 #include <vector>
+#include <algorithm>
 using namespace std;
 
 #include <unistd.h>

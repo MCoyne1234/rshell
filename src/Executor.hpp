@@ -23,7 +23,7 @@ public:
         {
             // TODO: Invoke system calls
             std::cout << executable;
-            for (int i = 0 ; i < argList.size(); i++)
+            for (unsigned int i = 0; i < argList.size(); i++)
                 std::cout << " " << argList[i];
             std::cout << endl;
             return 0;

@@ -35,7 +35,7 @@ public:
         // Secondly, use semi-colon as the delimiter, to generate a sequence.
         std::vector<std::string> seq = tokenize(stmt[0], ";");
 
-        for (int i = 0 ; i < seq.size(); i++)
+        for (unsigned int i = 0 ; i < seq.size(); i++)
         {
             // Thirdly, we use two stacks to parse binary commands.
             std::stack<std::string> symStack;
@@ -45,7 +45,7 @@ public:
 
             // Iterate all characters, push commands into rawCmdStack,
             // and binary operators (&& or ||) into symStack.
-            for (int j = 0; j < seq[i].size(); j++)
+            for (unsigned int j = 0; j < seq[i].size(); j++)
             {
                 // If the char is not & or |, then store it into command.
                 if (seq[i][j] != '&' && seq[i][j] != '|')

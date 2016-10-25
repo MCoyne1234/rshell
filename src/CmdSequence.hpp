@@ -12,7 +12,7 @@ private:
 public:
     ~CmdSequence()
     {
-        for (int i = 0; i < cmds.size(); i++)
+        for (unsigned int i = 0; i < cmds.size(); i++)
         {
 #ifdef DEBUG
             std::cout << "Deleting " << cmds[i]->toString() << std::endl;
@@ -39,7 +39,7 @@ public:
     int execute()
     {
         int ret = 0;
-        for (int i = 0; i < cmds.size(); i++)
+        for (unsigned int i = 0; i < cmds.size(); i++)
             ret = cmds[i]->execute();
         
         // Return the exit status of the last command
@@ -49,7 +49,7 @@ public:
     std::string toString()
     {
         std::string ret;
-        for (int i = 0; i < cmds.size(); i++)
+        for (unsigned int i = 0; i < cmds.size(); i++)
         {
             ret += cmds[i]->toString();
             if (i != cmds.size() - 1)
