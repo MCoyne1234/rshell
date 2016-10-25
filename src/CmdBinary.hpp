@@ -13,6 +13,16 @@ public:
             : leftCmd(leftCmd), rightCmd(rightCmd)
     {}
 
+    ~CmdBinary()
+    {
+#ifdef DEBUG
+        std::cout << "Deleting " << leftCmd->toString() << std::endl;
+        std::cout << "Deleting " << rightCmd->toString() << std::endl;
+#endif
+        delete leftCmd;
+        delete rightCmd;
+    }
+
     CmdBase *getLeftCmd() const { return leftCmd; }
     void setLeftCmd(CmdBase *cmd) { leftCmd = cmd; }
 
@@ -20,6 +30,7 @@ public:
     void setRightCmd(CmdBase *cmd) { rightCmd = cmd; }
 
     virtual int execute() = 0;
+    virtual std::string toString() = 0;
 };
 
 class CmdAnd : public CmdBinary
@@ -37,6 +48,11 @@ public:
         if (status) return 0;
         return rightCmd->execute();
     }
+
+    std::string toString()
+    {
+        return leftCmd->toString() + " && " + rightCmd->toString();
+    }
 };
 
 class CmdOr : public CmdBinary
@@ -53,6 +69,11 @@ public:
         int status = leftCmd->execute();
         if (!status) return 0;
         return rightCmd->execute();
+    }
+
+    std::string toString()
+    {
+        return leftCmd->toString() + " && " + rightCmd->toString();
     }
 };
 
