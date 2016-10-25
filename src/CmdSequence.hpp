@@ -4,7 +4,7 @@
 class CmdSequence : public CmdBase
 {
     typedef std::vector<CmdBase*> CmdVector;
-    typedef CmdVector::const_iterator CmdIterator;
+    typedef CmdVector::iterator   CmdIterator;
 
 private:
     CmdVector cmds;
