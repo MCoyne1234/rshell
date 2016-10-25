@@ -1,0 +1,18 @@
+#ifndef __CMD_UNARY__
+#define __CMD_UNARY__
+
+class CmdUnary : public CmdBase
+{
+private:
+    std::string executable;
+    std::vector<std::string> argList;
+    Executor* executor;
+
+public:
+    int execute() 
+    {
+        return executor->execute(executable, argList);
+    }
+};
+
+#endif
