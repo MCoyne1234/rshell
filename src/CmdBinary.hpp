@@ -73,7 +73,7 @@ public:
 
     std::string toString()
     {
-        return leftCmd->toString() + " && " + rightCmd->toString();
+        return leftCmd->toString() + " || " + rightCmd->toString();
     }
 };
 
