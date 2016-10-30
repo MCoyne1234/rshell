@@ -13,12 +13,7 @@ public:
     ~CmdSequence()
     {
         for (unsigned int i = 0; i < cmds.size(); i++)
-        {
-#ifdef DEBUG
-            std::cout << "Deleting " << cmds[i]->toString() << std::endl;
-#endif
             delete cmds[i];
-        }
     }
 
     void addCmd(CmdBase* cmd) { cmds.push_back(cmd); }
@@ -27,9 +22,6 @@ public:
         CmdIterator it = std::find(cmds.begin(), cmds.end(), cmd);
         if (it != cmds.end())
         {
-#ifdef DEBUG
-            std::cout << "Deleting " << (*it)->toString() << std::endl;
-#endif
             delete *it;
             cmds.erase(it);
         }
@@ -38,7 +30,8 @@ public:
 
     int execute()
     {
-        int ret = 0;
+        // Use 1 as the default return value, to denote empty sequence.
+        int ret = 1;
         for (unsigned int i = 0; i < cmds.size(); i++)
             ret = cmds[i]->execute();
         

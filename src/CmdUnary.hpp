@@ -28,7 +28,16 @@ public:
 
     int execute() 
     {
-        return executor->execute(executable, argList);
+        // execvp() requires the executable as the first element of arguments,
+        // and NULL as the last element in argument list, so we need to
+        // construct a new argument list for the executor.
+        std::vector<char*> args;
+        args.push_back((char*) executable.c_str());
+        for (int i = 0; i < argList.size(); i++)
+            args.push_back((char*) argList[i].c_str());
+        args.push_back(NULL);
+
+        return executor->execute(executable, args);
     }
 
     std::string toString()

@@ -17,8 +17,7 @@ public:
      *
      * @param input The user input.
      * @param executor The executor used in tree leaf CmdUnary.
-     * @return The root of the parse tree,
-     *         or NULL if the input is parsed as empty.
+     * @return The root of the parse tree.
      */
     CmdBase* parse(std::string input,
                    Executor* executor = NULL)
@@ -30,8 +29,8 @@ public:
         // Firstly, use # as the delimiter, to retrieve the statement before #.
         std::vector<std::string> stmt = tokenize(input, "#");
 
-        // Nothing before #?
-        if (stmt.empty()) return NULL;
+        // Nothing before #? Return a empty sequence.
+        if (stmt.empty()) return cmdSeq;
 
         // Secondly, use semi-colon as the delimiter, to generate a sequence.
         std::vector<std::string> seq = tokenize(stmt[0], ";");

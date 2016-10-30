@@ -15,10 +15,6 @@ public:
 
     ~CmdBinary()
     {
-#ifdef DEBUG
-        std::cout << "Deleting " << leftCmd->toString() << std::endl;
-        std::cout << "Deleting " << rightCmd->toString() << std::endl;
-#endif
         delete leftCmd;
         delete rightCmd;
     }
