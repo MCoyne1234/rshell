@@ -9,7 +9,7 @@ private:
 private:
     int printSysError(std::string cmd)
     {
-        std::string suffix = string(SHELL_NAME ": ") + cmd;
+        std::string suffix = std::string(SHELL_NAME ": ") + cmd;
         perror(suffix.c_str());
         return errno;
     }
@@ -25,18 +25,47 @@ public:
         if (executable == "exit")
         {
             exitExecuted = true;
-            return 0;
+
+            if (argList[1] == NULL)
+                return 0;
+            else // Exit with status
+            {
+                // Assume user input is numeric
+                bool numeric = true;
+
+                // Check if it is true
+                for (int i = 0; i < strlen(argList[1]); i++)
+                {
+                    if (!isdigit(argList[1][i]))
+                    {
+                        numeric = false;
+                        break;
+                    }
+                }
+
+                if (numeric)
+                    return atoi(argList[1]);
+                else
+                {
+                    std::cerr << SHELL_NAME ": exit: ";
+                    std::cerr << "numeric argument required" << std::endl;
+                    return 1; // 1 for general errors
+                }
+            }
         }
         else if (executable == "cd")
         {
-            if (argList.size() < 2 || argList[1] == NULL)
+            if (argList[1] == NULL)
             {
-                cerr << SHELL_NAME ": cd: missing argument." << endl;
-                return 1;
+                std::cerr << SHELL_NAME ": cd: missing argument" << std::endl;
+                return 1; // 1 for general errors
             }
             else
             {
-                return chdir(argList[1]) != 0 ? printSysError("chdir()") : 0;
+                if (chdir(argList[1]) == 0)
+                    return 0;
+                else
+                    return printSysError(std::string("cd: ") + argList[1]);
             }
         }
         else

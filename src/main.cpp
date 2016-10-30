@@ -1,4 +1,6 @@
 #include <iostream>
+#include <cstdio>
+#include <cstdlib>
 #include <string>
 #include <stack>
 #include <vector>
@@ -6,7 +8,6 @@
 using namespace std;
 
 #include <unistd.h>
-#include <stdio.h>
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -78,6 +79,8 @@ string getPromptInfo()
 int main(int argc, char* argv[])
 {
     string input;
+    int status;
+
     CmdBase* cmdTreeRoot = NULL;
     Executor* executor = new Executor();
     CmdParser parser;
@@ -88,7 +91,7 @@ int main(int argc, char* argv[])
         getline(cin, input); // Read the whole line.
 
         cmdTreeRoot = parser.parse(input, executor);
-        cmdTreeRoot->execute();
+        status = cmdTreeRoot->execute();
         delete cmdTreeRoot;
 
         if (executor->isExitExecuted())
@@ -96,5 +99,5 @@ int main(int argc, char* argv[])
     }
 
     delete executor;
-    return 0;
+    return status;
 }
