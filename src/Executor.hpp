@@ -74,9 +74,9 @@ public:
                 if (execvp(executable.c_str(), &argList[0]) < 0)
                 {
                     if (errno == ENOENT) // No such file or directory
-                        return printSysError(executable.c_str());
+                        exit(printSysError(executable.c_str()));
                     else
-                        return printSysError("execvp()");
+                        exit(printSysError("execvp()"));
                 }
 
                 // Actually, we shall not reach here. Because execvp() should
