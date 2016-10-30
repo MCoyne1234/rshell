@@ -1,15 +1,15 @@
 #include <iostream>
-#include <cstdio>
-#include <cstdlib>
 #include <string>
 #include <stack>
 #include <vector>
 #include <algorithm>
 using namespace std;
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#include <sys/stat.h>
 #include <sys/wait.h>
 
 #define SHELL_NAME "rshell"
