@@ -67,7 +67,7 @@ public:
 
             pid = fork();
             if (pid < 0) // fork() failed
-                return printSysError("fork()");
+                exit(printSysError("fork()"));
             else if (pid == 0) // Child process
             {
                 // &argList[0] denotes the vector's internal array.
