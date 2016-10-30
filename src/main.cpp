@@ -6,6 +6,11 @@
 using namespace std;
 
 #include <unistd.h>
+#include <errno.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
+
+#define SHELL_NAME "rshell"
 
 #include "CmdBase.hpp"
 #include "Executor.hpp"
@@ -17,43 +22,73 @@ using namespace std;
 string getCurrentUserName()
 {
     char* userName = getlogin();
+    if (userName == NULL)
+        perror(SHELL_NAME);
+
     return userName ? string(userName) : "??name??";
 }
 
 string getCurrentHostName()
 {
     char hostName[256];
-    return gethostname(hostName, 255) < 0 ? "??host??" : string(hostName);
+
+    int ret = gethostname(hostName, 256);
+    if (ret < 0)
+        perror(SHELL_NAME);
+
+    return ret >= 0 ? string(hostName) : "??host??";
 }
 
-string getLoginInfo()
+string getCurrentAbsolutePath()
 {
-    return getCurrentUserName() + "@" + getCurrentHostName();
+    char currentDir[PATH_MAX + 1];
+    char* ret = getcwd(currentDir, PATH_MAX + 1);
+
+    if (ret == NULL)
+        perror(SHELL_NAME);
+
+    return ret != NULL ? string(currentDir) : "??dir??";
+}
+
+string getCurrentRelativePath()
+{
+    string absPath = getCurrentAbsolutePath();
+    string::size_type lastSlashPos = absPath.find_last_of("/");
+
+    // When getcwd() failed, there is no `/` in the absolute path.
+    if (lastSlashPos == string::npos)
+        return absPath;
+    else
+    {
+        // This occurred only when absolute path is `/`.
+        if (lastSlashPos == absPath.length() - 1)
+            return absPath;
+        else
+            return absPath.substr(lastSlashPos + 1);
+    }
+}
+
+string getPromptInfo()
+{
+    return getCurrentUserName() + "@" + getCurrentHostName() + ": " +
+           getCurrentRelativePath() + " $ ";
 }
 
 int main(int argc, char* argv[])
 {
-    string input, loginInfo = getLoginInfo();
+    string input;
     CmdBase* cmdTreeRoot = NULL;
     Executor* executor = new Executor();
     CmdParser parser;
 
     while (!cin.eof())
     {
-        // If stdin was not redirected, print the prompt.
-#ifndef DEBUG
-        if (isatty(STDIN_FILENO))
-#endif
-            cout << loginInfo << " $ ";
-
+        cout << getPromptInfo();
         getline(cin, input); // Read the whole line.
 
         cmdTreeRoot = parser.parse(input, executor);
-        if (cmdTreeRoot)
-        {
-            cmdTreeRoot->execute();
-            delete cmdTreeRoot;
-        }
+        cmdTreeRoot->execute();
+        delete cmdTreeRoot;
 
         if (executor->isExitExecuted())
             break;
