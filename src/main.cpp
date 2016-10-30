@@ -6,6 +6,7 @@
 using namespace std;
 
 #include <unistd.h>
+#include <stdio.h>
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -41,9 +42,9 @@ string getCurrentHostName()
 
 string getCurrentAbsolutePath()
 {
-    char currentDir[PATH_MAX + 1];
-    char* ret = getcwd(currentDir, PATH_MAX + 1);
+    char currentDir[1024];
 
+    char* ret = getcwd(currentDir, 1024);
     if (ret == NULL)
         perror(SHELL_NAME);
 

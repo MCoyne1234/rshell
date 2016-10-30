@@ -33,7 +33,7 @@ public:
         // construct a new argument list for the executor.
         std::vector<char*> args;
         args.push_back((char*) executable.c_str());
-        for (int i = 0; i < argList.size(); i++)
+        for (unsigned int i = 0; i < argList.size(); i++)
             args.push_back((char*) argList[i].c_str());
         args.push_back(NULL);
 
