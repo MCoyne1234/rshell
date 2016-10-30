@@ -9,8 +9,8 @@ private:
 private:
     int printSysError(std::string cmd)
     {
-        std::string suffix = std::string(SHELL_NAME ": ") + cmd;
-        perror(suffix.c_str());
+        std::string prefix = std::string(SHELL_NAME ": ") + cmd;
+        perror(prefix.c_str());
         return errno;
     }
 
