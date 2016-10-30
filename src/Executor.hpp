@@ -34,7 +34,7 @@ public:
                 bool numeric = true;
 
                 // Check if it is true
-                for (int i = 0; i < strlen(argList[1]); i++)
+                for (size_t i = 0; i < strlen(argList[1]); i++)
                 {
                     if (!isdigit(argList[1][i]))
                     {
