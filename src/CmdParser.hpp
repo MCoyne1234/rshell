@@ -15,6 +15,9 @@ public:
      *     - CmdUnary
      *     - CmdUnary
      *
+     * When syntax error occured, such as missing command before or after &&,
+     * we will print corrsopnding information and return NULL.
+     *
      * @param input The user input.
      * @param executor The executor used in tree leaf CmdUnary.
      * @return The root of the parse tree (even an empty sequence is parsed),
