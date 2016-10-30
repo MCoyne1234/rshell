@@ -65,7 +65,8 @@ public:
                         // before the binary operator (left side).
                         unary = tokenize(command, " ");
 
-                        // Empty command?
+                        // Empty command? Such as `&& echo 123` or a more
+                        // complex `echo 123 && || mkdir test`
                         if (unary.size() == 0)
                         {
                             std::cerr << SHELL_NAME ": bad syntax: ";
@@ -73,6 +74,7 @@ public:
                             std::cerr << string(2, seq[i][j]) << "`";
                             std::cerr << std::endl;
 
+                            releaseCmdStack(cmdStack);
                             delete cmdSeq;
                             return NULL;
                         }
@@ -93,6 +95,7 @@ public:
                         std::cerr << "missing `" << seq[i][j] << "`";
                         std::cerr << std::endl;
 
+                        releaseCmdStack(cmdStack);
                         delete cmdSeq;
                         return NULL;
                     }
@@ -107,22 +110,26 @@ public:
             if (unary.size() > 0)
                 cmdStack.push(new CmdUnary(unary, executor));
 
+            // Check whether the last command is missing, such as a sequence
+            // `echo 123 && mkdir test ||`.
+            // For situation like `echo 123 && || mkdir test` has already
+            // been handle before.
+            if (cmdStack.size() - symStack.size() != 1)
+            {
+                std::cerr << SHELL_NAME ": bad syntax: ";
+                std::cerr << "missing command after `";
+                std::cerr << symStack.top() << "`" << std::endl;
+
+                releaseCmdStack(cmdStack);
+                delete cmdSeq;
+                return NULL;
+            }
+
             // Note that symStack can be empty at this point,
             // under the circumstance that this token is a single command.
             while (!symStack.empty())
             {
                 CmdBinary* binCmd = NULL;
-
-                // This occurred only when the right side command is missing.
-                if (cmdStack.size() < 2)
-                {
-                    std::cerr << SHELL_NAME ": bad syntax: ";
-                    std::cerr << "missing command after `";
-                    std::cerr << symStack.top() << "`" << std::endl;
-
-                    delete cmdSeq;
-                    return NULL;
-                }
 
                 // The top element of rawCmdStack is the
                 // right side of a binary operator, and the element below
@@ -197,6 +204,15 @@ private:
             tokens.push_back(string.substr(start));
 
         return tokens;
+    }
+
+    void releaseCmdStack(std::stack<CmdBase*>& stack)
+    {
+        while (!stack.empty())
+        {
+            delete stack.top();
+            stack.pop();
+        }
     }
 };
 

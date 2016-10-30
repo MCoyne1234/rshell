@@ -88,13 +88,13 @@ public:
                 // Loop until child process exited or signaled.
                 do
                 {
-                    wpid = waitpid(pid, &status, WUNTRACED);
+                    wpid = waitpid(pid, &status, 0);
                     if (wpid < 0) // waitpid() failed
                         return printSysError("waitpid()");
                 } while (!WIFEXITED(status) && !WIFSIGNALED(status));
 
                 // Return child process's exit status
-                return status;
+                return WEXITSTATUS(status);
             }
         }
     }
