@@ -6,14 +6,6 @@ class Executor
 private:
     bool exitExecuted;
 
-private:
-    int printSysError(std::string cmd)
-    {
-        std::string prefix = std::string(SHELL_NAME ": ") + cmd;
-        perror(prefix.c_str());
-        return errno;
-    }
-
 public:
     Executor() : exitExecuted(false) {}
 
@@ -106,7 +98,14 @@ public:
             }
         }
     }
-    
+
+private:
+    int printSysError(std::string cmd)
+    {
+        std::string prefix = std::string(SHELL_NAME ": ") + cmd;
+        perror(prefix.c_str());
+        return errno;
+    }
 };
 
 #endif

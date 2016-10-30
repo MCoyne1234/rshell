@@ -17,7 +17,8 @@ public:
      *
      * @param input The user input.
      * @param executor The executor used in tree leaf CmdUnary.
-     * @return The root of the parse tree.
+     * @return The root of the parse tree (even an empty sequence is parsed),
+     *         or NULL on bad syntax.
      */
     CmdBase* parse(std::string input,
                    Executor* executor = NULL)
@@ -29,7 +30,7 @@ public:
         // Firstly, use # as the delimiter, to retrieve the statement before #.
         std::vector<std::string> stmt = tokenize(input, "#");
 
-        // Nothing before #? Return a empty sequence.
+        // Nothing before #? Return an empty sequence.
         if (stmt.empty()) return cmdSeq;
 
         // Secondly, use semi-colon as the delimiter, to generate a sequence.
@@ -57,14 +58,40 @@ public:
                     if (seq[i][j] == seq[i][j + 1])
                     {
                         // Finally, use space as the delimiter, to generate the
-                        // unary (single) command.
+                        // unary (single) command. This command is the one
+                        // before the binary operator (left side).
                         unary = tokenize(command, " ");
 
-                        cmdStack.push(new CmdUnary(unary, executor));
-                        symStack.push(string(2, seq[i][j]));
+                        // Empty command?
+                        if (unary.size() == 0)
+                        {
+                            std::cerr << SHELL_NAME ": bad syntax: ";
+                            std::cerr << "missing command before `";
+                            std::cerr << string(2, seq[i][j]) << "`";
+                            std::cerr << std::endl;
 
-                        command = ""; // Clear command for the next one.
-                        j++; // Skip the second & or |.
+                            delete cmdSeq;
+                            return NULL;
+                        }
+                        else
+                        {
+                            cmdStack.push(new CmdUnary(unary, executor));
+                            symStack.push(string(2, seq[i][j]));
+
+                            command = ""; // Clear command for the next one.
+                            j++; // Skip the second & or |.
+                        }
+                    }
+                    else
+                    {
+                        // Currently, our syntax requires there must be
+                        // another & (or |) followed by the first one.
+                        std::cerr << SHELL_NAME ": bad syntax: ";
+                        std::cerr << "missing `" << seq[i][j] << "`";
+                        std::cerr << std::endl;
+
+                        delete cmdSeq;
+                        return NULL;
                     }
                 }
             }
@@ -82,6 +109,17 @@ public:
             while (!symStack.empty())
             {
                 CmdBinary* binCmd = NULL;
+
+                // This occurred only when the right side command is missing.
+                if (cmdStack.size() < 2)
+                {
+                    std::cerr << SHELL_NAME ": bad syntax: ";
+                    std::cerr << "missing command after `";
+                    std::cerr << symStack.top() << "`" << std::endl;
+
+                    delete cmdSeq;
+                    return NULL;
+                }
 
                 // The top element of rawCmdStack is the
                 // right side of a binary operator, and the element below

@@ -91,8 +91,11 @@ int main(int argc, char* argv[])
         getline(cin, input); // Read the whole line.
 
         cmdTreeRoot = parser.parse(input, executor);
-        status = cmdTreeRoot->execute();
-        delete cmdTreeRoot;
+        if (cmdTreeRoot)
+        {
+            status = cmdTreeRoot->execute();
+            delete cmdTreeRoot;
+        }
 
         if (executor->isExitExecuted())
             break;
