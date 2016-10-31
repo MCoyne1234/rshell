@@ -74,10 +74,10 @@ rshell could handle commands such as
 ls -al; echo hello && mkdir test || echo world; git status
 ```
 
-Assume that directory `test` exists, then executing above commands would print
+Assume that directory `tests` exists, then executing above commands would print
 
 ```
-Shindo@Shindos-MacBook-Pro.local: rshell $ ls -al; echo hello && mkdir test || echo world; git status
+Shindo@Shindos-MacBook-Pro.local: rshell $ ls -al; echo hello && mkdir tests || echo world; git status
 total 136
 drwxr-xr-x  13 Shindo  staff    442 10 31 02:34 .
 drwx------+ 11 Shindo  staff    374 10 31 01:47 ..
@@ -90,6 +90,7 @@ drwxr-xr-x  13 Shindo  staff    442 10 31 02:33 .git
 drwxr-xr-x  10 Shindo  staff    340 10 31 02:33 src
 drwxr-xr-x   7 Shindo  staff    238 10 31 02:33 tests
 hello
+mkdir: cannot create directory ‘tests’: File exists
 On branch exec
 Your branch is up-to-date with 'origin/exec'.
 Changes not staged for commit:
