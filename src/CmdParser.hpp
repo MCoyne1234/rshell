@@ -41,12 +41,9 @@ public:
         // Nothing before #? Return an empty sequence.
         if (stmt.empty()) return cmdSeq;
 
-        std::cout << stmt[0] << std::endl;
         // Secondly, use semi-colon as the delimiter, to generate a sequence.
         std::vector<std::string> seq = tokenize(stmt[0], ";");
-
-        std::cout << seq.size() << std::endl;
-
+        
         for (unsigned int i = 0 ; i < seq.size(); i++)
         {
             // Thirdly, we use two stacks to parse binary commands.
