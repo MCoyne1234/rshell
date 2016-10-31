@@ -97,7 +97,7 @@ public:
                         // Currently, our syntax requires there must be
                         // another & (or |) followed by the first one.
                         std::cerr << SHELL_NAME ": bad syntax: ";
-                        std::cerr << "missing `" << seq[i][j] << "`";
+                        std::cerr << "unexpected token `" << seq[i][j] << "`";
                         std::cerr << std::endl;
 
                         releaseStack<CmdBase>(cmdStack);
