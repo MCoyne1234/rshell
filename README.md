@@ -134,6 +134,10 @@ Currently, we treat single `&` and `|` as illegal symbol, that is
 
 Currently, rshell does not handle singals suchs as `Ctrl+C`.
 
+**3. Cannot handle TABs.**
+
+Currently, rshell does not recognize tabs, treating them the same as spaces.
+
 ## Valgrind Test
 
 ```
