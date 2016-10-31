@@ -25,7 +25,7 @@ string getCurrentUserName()
 {
     char* userName = getlogin();
     if (userName == NULL)
-        perror(SHELL_NAME);
+        perror(SHELL_NAME ": getlogin()");
 
     return userName ? string(userName) : "??name??";
 }
@@ -36,7 +36,7 @@ string getCurrentHostName()
 
     int ret = gethostname(hostName, 256);
     if (ret < 0)
-        perror(SHELL_NAME);
+        perror(SHELL_NAME ": gethostname()");
 
     return ret >= 0 ? string(hostName) : "??host??";
 }
@@ -47,7 +47,7 @@ string getCurrentAbsolutePath()
 
     char* ret = getcwd(currentDir, 1024);
     if (ret == NULL)
-        perror(SHELL_NAME);
+        perror(SHELL_NAME ": getcwd()");
 
     return ret != NULL ? string(currentDir) : "??dir??";
 }
