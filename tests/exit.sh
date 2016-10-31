@@ -31,7 +31,7 @@ EOF
 
 echo "Execute echo output1; echo output2; echo output3 && exit"
 ../bin/rshell << EOF
-echo output1; echo output2; echo output3 && exit"
+echo output1; echo output2; echo output3 && exit
 echo
 EOF
 
