@@ -128,7 +128,7 @@ Currently, we treat single `&` and `|` as illegal symbol, that is
 		
 - `echo "This is a message in qutoes."` would print `"This is a message in quotes."`
 
-- `echo "ls -al; mkdir test"` would be treated as `echo "ls -al` and `mkdir test`.
+- `echo "ls -al; mkdir test"` would be treated as `echo "ls -al` and `mkdir test"`.
 
 **2. Cannot handle singals.**
 
