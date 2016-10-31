@@ -1,6 +1,7 @@
 #ifndef __CMD_PARSER__
 #define __CMD_PARSER__
 
+//! The class for parsing user input into command tree.
 class CmdParser
 {
 public:
@@ -12,7 +13,9 @@ public:
      * - CmdSequence
      *   - CmdUnary
      *   - CmdBinary
-     *     - CmdUnary
+     *     - CmdBinary
+     *       - CmdUnary
+     *       - CmdUnary
      *     - CmdUnary
      *
      * When syntax error occured, such as missing command before or after &&,
@@ -74,7 +77,7 @@ public:
                             std::cerr << string(2, seq[i][j]) << "`";
                             std::cerr << std::endl;
 
-                            releaseCmdStack(cmdStack);
+                            releaseStack<CmdBase>(cmdStack);
                             delete cmdSeq;
                             return NULL;
                         }
@@ -95,7 +98,7 @@ public:
                         std::cerr << "missing `" << seq[i][j] << "`";
                         std::cerr << std::endl;
 
-                        releaseCmdStack(cmdStack);
+                        releaseStack<CmdBase>(cmdStack);
                         delete cmdSeq;
                         return NULL;
                     }
@@ -120,7 +123,7 @@ public:
                 std::cerr << "missing command after `";
                 std::cerr << symStack.top() << "`" << std::endl;
 
-                releaseCmdStack(cmdStack);
+                releaseStack<CmdBase>(cmdStack);
                 delete cmdSeq;
                 return NULL;
             }
@@ -206,7 +209,13 @@ private:
         return tokens;
     }
 
-    void releaseCmdStack(std::stack<CmdBase*>& stack)
+    /**
+     * @brief Release allocated memory in a stack.
+     * @tparam ValueT The value type of pointers in the stack.
+     * @param[in,out] stack The stack to be released.
+     */
+    template <class ValueT>
+    void releaseStack(std::stack<ValueT*>& stack)
     {
         while (!stack.empty())
         {

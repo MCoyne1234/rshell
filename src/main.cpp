@@ -70,6 +70,8 @@ string getCurrentRelativePath()
     }
 }
 
+//! Return the prompt with current logined user name, host name and
+//! working directory, such as `example\@hammer.cs.ucr.edu: var $`.
 string getPromptInfo()
 {
     return getCurrentUserName() + "@" + getCurrentHostName() + ": " +
@@ -79,7 +81,7 @@ string getPromptInfo()
 int main(int argc, char* argv[])
 {
     string input;
-    int status;
+    int status = 127; // 127 denotes `command not found`.
 
     CmdBase* cmdTreeRoot = NULL;
     Executor* executor = new Executor();
@@ -91,7 +93,7 @@ int main(int argc, char* argv[])
         getline(cin, input); // Read the whole line.
 
         cmdTreeRoot = parser.parse(input, executor);
-        if (cmdTreeRoot)
+        if (cmdTreeRoot != NULL)
         {
             status = cmdTreeRoot->execute();
             delete cmdTreeRoot;

@@ -1,6 +1,7 @@
 #ifndef __EXECUTOR__
 #define __EXECUTOR__
 
+//! The class for executing command.
 class Executor
 {
 private:
@@ -9,8 +10,20 @@ private:
 public:
     Executor() : exitExecuted(false) {}
 
+    //! Whether the Executor has executed \c exit command.
     bool isExitExecuted() const { return exitExecuted; }
 
+    /**
+     * @brief Execute a given executable with argument list.
+     *
+     * Note that the first element of \c argList (that is, \c argList[0])
+     * should have the same content as \c executable and the last element
+     * should be NULL, which is required by \c execvp().
+     *
+     * @param executable The executable's path or filename.
+     * @param argList The argument list.
+     * @return The exit status of executing the \c executable.
+     */
     int execute(std::string executable,
                 std::vector<char*> argList)
     {
@@ -100,6 +113,12 @@ public:
     }
 
 private:
+    /**
+     * @brief Helper function for printing failure of syscalls or commands
+     *        (encapsulates \c perror).
+     * @param cmd The failed command or syscall.
+     * @return The error number (\c errno).
+     */
     int printSysError(std::string cmd)
     {
         std::string prefix = std::string(SHELL_NAME ": ") + cmd;
