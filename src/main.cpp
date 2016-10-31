@@ -89,7 +89,10 @@ int main(int argc, char* argv[])
 
     while (!cin.eof())
     {
-        cout << getPromptInfo();
+        // If stdin was not redirected, print the prompt.
+        if (isatty(STDIN_FILENO))
+            cout << getPromptInfo();
+
         getline(cin, input); // Read the whole line.
 
         cmdTreeRoot = parser.parse(input, executor);
