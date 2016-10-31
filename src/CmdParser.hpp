@@ -26,6 +26,8 @@ public:
      * @return The root of the parse tree (even an empty sequence is parsed),
      *         or NULL on bad syntax.
      */
+    // TODO: Rewrite the parser with processing characters one by one,
+    //       since the tokenizer would "break" the quotation mark.
     CmdBase* parse(std::string input,
                    Executor* executor = NULL)
     {
