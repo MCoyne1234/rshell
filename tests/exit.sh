@@ -8,9 +8,9 @@ fi
 echo "Execute exit"
 ../bin/rshell << EOF
 exit
-echo
 EOF
 
+echo
 echo "Execute exit ls; # echo hello"
 ../bin/rshell << EOF
 exit ls; # echo hello
