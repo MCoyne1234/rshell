@@ -41,8 +41,11 @@ public:
         // Nothing before #? Return an empty sequence.
         if (stmt.empty()) return cmdSeq;
 
+        std::cout << stmt[0] << std::endl;
         // Secondly, use semi-colon as the delimiter, to generate a sequence.
         std::vector<std::string> seq = tokenize(stmt[0], ";");
+
+        std::cout << seq.size() << std::endl;
 
         for (unsigned int i = 0 ; i < seq.size(); i++)
         {
@@ -119,7 +122,8 @@ public:
             // `echo 123 && mkdir test ||`.
             // For situation like `echo 123 && || mkdir test` has already
             // been handle before.
-            if (cmdStack.size() - symStack.size() != 1)
+            // Note that we have to check whether symStack is empty first.
+            if (!symStack.empty() && cmdStack.size() - symStack.size() != 1)
             {
                 std::cerr << SHELL_NAME ": bad syntax: ";
                 std::cerr << "missing command after `";
