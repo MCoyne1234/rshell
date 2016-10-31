@@ -36,13 +36,10 @@ public:
         CmdSequence* cmdSeq = new CmdSequence();
 
         // Firstly, use # as the delimiter, to retrieve the statement before #.
-        std::vector<std::string> stmt = tokenize(input, "#");
-
-        // Nothing before #? Return an empty sequence.
-        if (stmt.empty()) return cmdSeq;
-
+        std::string stmt = input.substr(0, input.find_first_of("#"));
+		
         // Secondly, use semi-colon as the delimiter, to generate a sequence.
-        std::vector<std::string> seq = tokenize(stmt[0], ";");
+        std::vector<std::string> seq = tokenize(stmt, ";");
         
         for (unsigned int i = 0 ; i < seq.size(); i++)
         {
@@ -68,7 +65,7 @@ public:
                         // Finally, use space as the delimiter, to generate the
                         // unary (single) command. This command is the one
                         // before the binary operator (left side).
-                        unary = tokenize(command, " ");
+                        unary = tokenize(command, " \t");
 
                         // Empty command? Such as `&& echo 123` or a more
                         // complex `echo 123 && || mkdir test`
@@ -108,7 +105,7 @@ public:
             }
 
             // At this point, the last command has not been parsed.
-            unary = tokenize(command, " ");
+            unary = tokenize(command, " \t");
             // Note that the command could be empty or spaces.
             // Consider this: ls -al ; # list all.
             // The command between ; and # is empty.
