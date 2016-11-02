@@ -1,7 +1,7 @@
 # rshell
 CS 100: Assignment 2 
 
-[![Build Status](https://travis-ci.org/coverxit/rshell.svg?branch=exec)](https://travis-ci.org/coverxit/rshell)
+[![Build Status](https://travis-ci.org/coverxit/rshell.svg?branch=master)](https://travis-ci.org/coverxit/rshell)
 
 ## License
 
