@@ -22,21 +22,21 @@ echo "Execute #echo hello || echo hello2; mkdir blabla"
 echo
 EOF
 
-echo "Execute echo hello; echo hello || #echo hello; echo hello && echo hello"
+echo "Execute echo hello; echo world #|| echo hello; echo hello && echo hello"
 ../bin/rshell << EOF
-echo hello; echo hello || #echo hello; echo hello && echo hello
+echo hello; echo world #|| echo hello; echo hello && echo hello
 echo
 EOF
 
-echo "Execute echo hello && echo hello; echo hi && #echo bye"
+echo "Execute echo hello && echo world; echo hi #&& echo bye"
 ../bin/rshell << EOF
-echo hello && echo hello; echo hi && #echo bye
+echo hello && echo world; echo hi #&& echo bye
 echo
 EOF
 
-echo "Execute ls || echo hello && echo hello #hi && echo hello exit; #exit; echo hello"
+echo "Execute ls || echo hello && echo world #hi && echo hello exit; #exit; echo hello"
 ../bin/rshell << EOF
-ls || echo hello && echo hello #hi && echo hello exit; #exit; echo hello
+ls || echo hello && echo world #hi && echo hello exit; #exit; echo hello
 echo
 EOF
 

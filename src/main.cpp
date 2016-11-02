@@ -26,8 +26,6 @@ using namespace std;
 CmdBase* cmdTreeRoot = NULL;
 //! The command executor
 Executor* cmdExecutor = NULL;
-//! The exit status of rshell
-int exitStatus = 127; // 127 denotes `command not found`.
 
 string getCurrentUserName()
 {
@@ -87,10 +85,8 @@ string getPromptInfo()
 }
 
 //! Handler for command 'exit'
-void exitHandler(int status)
+void exitHandler(int /* status */)
 {
-    exitStatus = status;
-
     // clean up
     if (cmdTreeRoot) delete cmdTreeRoot;
     if (cmdExecutor) delete cmdExecutor;
@@ -100,6 +96,7 @@ int main(int argc, char* argv[])
 {
     CmdParser parser;
     string input;
+    int status = 127; // 127 denotes `command not found`.
 
     // Set up executor with our handler
     cmdExecutor = new Executor(exitHandler);
@@ -114,11 +111,11 @@ int main(int argc, char* argv[])
         cmdTreeRoot = parser.parse(input, cmdExecutor);
         if (cmdTreeRoot != NULL)
         {
-            exitStatus = cmdTreeRoot->execute();
+            status = cmdTreeRoot->execute();
             delete cmdTreeRoot;
         }
     }
 
     delete cmdExecutor;
-    return exitStatus;
+    return status;
 }

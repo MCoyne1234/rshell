@@ -17,6 +17,9 @@ ls -a; echo hello && mkdir test || echo world; git status
 echo
 EOF
 
+#clean up directory `test`
+rm -rf test
+
 echo "Exuete ls || echo 1 && echo 2:"
 ../bin/rshell << EOF
 ls || echo 1 && echo 2

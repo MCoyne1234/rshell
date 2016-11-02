@@ -9,47 +9,56 @@ echo "Execute exit"
 ../bin/rshell << EOF
 exit
 EOF
+echo "- bash: Exit status:" $? 
 
 echo
-echo "Execute exit ls; # echo hello"
+echo "Execute exit 2"
 ../bin/rshell << EOF
-exit ls; # echo hello
+exit 2
 EOF
+echo "- bash: Exit status:" $? 
 
 echo
-echo "Execute echo output1; echo output2 || exit"
+echo "Execute exit ls"
+echo "[When error occured, 1 would be the default exit status]"
 ../bin/rshell << EOF
-echo output1; echo output2 || exit
+exit ls
 EOF
+echo "- bash: Exit status:" $? 
 
 echo
-echo "Execute exit ls -a; # echo output1 || echo output2 && echo output3"
+echo "Execute mkdir exit.sh && exit 2"
 ../bin/rshell << EOF
-exit ls -a; # echo output1 || echo output2 && echo output3
+mkdir exit.sh && exit 2
 EOF
-
-echo
-echo "Execute echo output1; echo output2; echo output3 && exit"
-../bin/rshell << EOF
-echo output1; echo output2; echo output3 && exit
-EOF
-
-echo
-echo "Execute exit || exit"
-../bin/rshell << EOF
-exit || exit
-EOF
-
-echo
-echo "Execute echo ls -a && echo Hi || exit"
-../bin/rshell << EOF
-echo ls -a && echo Hi || exit
-EOF
+echo "- bash: Exit status:" $? 
 
 echo
 echo "Execute exit && echo hello"
 ../bin/rshell << EOF
 exit && echo hello
 EOF
+echo "- bash: Exit status:" $? 
+
+echo
+echo "Execute echo output1; echo output2 && exit; echo output3"
+../bin/rshell << EOF
+echo output1; echo output2 && exit; echo output3
+EOF
+echo "- bash: Exit status:" $? 
+
+echo
+echo "Execute exit 1 || exit 2"
+../bin/rshell << EOF
+exit 1 || exit 2
+EOF
+echo "- bash: Exit status:" $? 
+
+echo
+echo "Execute exit 1 && exit 2"
+../bin/rshell << EOF
+exit 1 && exit 2
+EOF
+echo "- bash: Exit status:" $? 
 
 exit 0

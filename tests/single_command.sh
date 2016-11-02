@@ -34,5 +34,12 @@ echo
 echo Execute ls -al:
 ls -al
 EOF
+echo
+
+echo "Execute ; (empty command)"
+../bin/rshell << EOF
+;
+echo
+EOF
 
 exit 0
