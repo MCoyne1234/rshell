@@ -43,14 +43,14 @@ public:
         
         for (unsigned int i = 0 ; i < seq.size(); i++)
         {
-            // Thirdly, we use two stacks to parse binary commands.
-            std::stack<std::string> symStack;
-            std::stack<CmdBase*> cmdStack;
+            // Thirdly, we use two queues to parse binary commands.
+            std::queue<std::string> symQueue;
+            std::deque<CmdBase*> cmdQueue;
             std::string command;
             std::vector<std::string> unary;
 
-            // Iterate all characters, push commands into rawCmdStack,
-            // and binary operators (&& or ||) into symStack.
+            // Iterate all characters, push commands into cmdQueue,
+            // and binary operators (&& or ||) into symQueue.
             for (unsigned int j = 0; j < seq[i].size(); j++)
             {
                 // If the char is not & or |, then store it into command.
@@ -76,14 +76,14 @@ public:
                             std::cerr << string(2, seq[i][j]) << "`";
                             std::cerr << std::endl;
 
-                            releaseStack<CmdBase>(cmdStack);
+                            releaseQueue<CmdBase>(cmdQueue);
                             delete cmdSeq;
                             return NULL;
                         }
                         else
                         {
-                            cmdStack.push(new CmdUnary(unary, executor));
-                            symStack.push(string(2, seq[i][j]));
+                            cmdQueue.push_back(new CmdUnary(unary, executor));
+                            symQueue.push(string(2, seq[i][j]));
 
                             command = ""; // Clear command for the next one.
                             j++; // Skip the second & or |.
@@ -97,7 +97,7 @@ public:
                         std::cerr << "unexpected token `" << seq[i][j] << "`";
                         std::cerr << std::endl;
 
-                        releaseStack<CmdBase>(cmdStack);
+                        releaseQueue<CmdBase>(cmdQueue);
                         delete cmdSeq;
                         return NULL;
                     }
@@ -110,61 +110,61 @@ public:
             // Consider this: ls -al ; # list all.
             // The command between ; and # is empty.
             if (unary.size() > 0)
-                cmdStack.push(new CmdUnary(unary, executor));
+                cmdQueue.push_back(new CmdUnary(unary, executor));
 
             // Check whether the last command is missing, such as a sequence
             // `echo 123 && mkdir test ||`.
             // For situation like `echo 123 && || mkdir test` has already
             // been handle before.
-            // Note that we have to check whether symStack is empty first.
-            if (!symStack.empty() && cmdStack.size() - symStack.size() != 1)
+            // Note that we have to check whether symQueue is empty first.
+            if (!symQueue.empty() && cmdQueue.size() - symQueue.size() != 1)
             {
                 std::cerr << SHELL_NAME ": bad syntax: ";
                 std::cerr << "missing command after `";
-                std::cerr << symStack.top() << "`" << std::endl;
+                std::cerr << symQueue.front() << "`" << std::endl;
 
-                releaseStack<CmdBase>(cmdStack);
+                releaseQueue<CmdBase>(cmdQueue);
                 delete cmdSeq;
                 return NULL;
             }
 
-            // Note that symStack can be empty at this point,
+            // Note that symQueue can be empty at this point,
             // under the circumstance that this token is a single command.
-            while (!symStack.empty())
+            while (!symQueue.empty())
             {
                 CmdBinary* binCmd = NULL;
 
-                // The top element of rawCmdStack is the
-                // right side of a binary operator, and the element below
-                // it is the left side of the operator.
-                CmdBase* cmdRight = cmdStack.top();
-                cmdStack.pop();
-                CmdBase* cmdLeft = cmdStack.top();
-                cmdStack.pop();
+                CmdBase* cmdLeft = cmdQueue.front();
+                cmdQueue.pop_front();
+                CmdBase* cmdRight = cmdQueue.front();
+                cmdQueue.pop_front();
 
                 // Create a binary command based the operator.
-                if (symStack.top() == "&&")
+                if (symQueue.front() == "&&")
                     binCmd = new CmdAnd(cmdLeft, cmdRight);
-                else if (symStack.top() == "||")
+                else if (symQueue.front() == "||")
                     binCmd = new CmdOr(cmdLeft, cmdRight);
                 // Note that there is no else-clause, since only && and ||
-                // are pushed into symStack.
+                // are pushed into symQueue.
 
-                // Push this binary command into cmdStack for later
+                // Push this binary command into cmdQueue for later
                 // compositing the parent one.
-                cmdStack.push(binCmd);
-                symStack.pop();
+                // Note that it has to be put in the front of the cmdQueue,
+                // since the order of executing binary operators is
+                // left to right.
+                cmdQueue.push_front(binCmd);
+                symQueue.pop();
             }
 
             // If the above loop is executed, there should be one element
-            // (CmdBinary) left in cmdStack.
+            // (CmdBinary) left in cmdQueue.
             // Otherwise, it's possible to to have one element (CmdUnary)
-            // left in cmdStack.
-            // Anyway, we add it into the sequence if cmdStack is not empty.
-            if (!cmdStack.empty())
+            // left in cmdQueue.
+            // Anyway, we add it into the sequence if cmdQueue is not empty.
+            if (!cmdQueue.empty())
             {
-                cmdSeq->addCmd(cmdStack.top());
-                cmdStack.pop();
+                cmdSeq->addCmd(cmdQueue.front());
+                cmdQueue.pop_front();
             }
         }
 
@@ -210,17 +210,17 @@ private:
     }
 
     /**
-     * @brief Release allocated memory in a stack.
-     * @tparam ValueT The value type of pointers in the stack.
-     * @param[in,out] stack The stack to be released.
+     * @brief Release allocated memory in a queue.
+     * @tparam ValueT The value type of pointers in the queue.
+     * @param[in,out] queue The queue to be released.
      */
     template <class ValueT>
-    void releaseStack(std::stack<ValueT*>& stack)
+    void releaseQueue(std::deque<ValueT *> &queue)
     {
-        while (!stack.empty())
+        while (!queue.empty())
         {
-            delete stack.top();
-            stack.pop();
+            delete queue.front();
+            queue.pop_front();
         }
     }
 };
