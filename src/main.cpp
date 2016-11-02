@@ -22,6 +22,13 @@ using namespace std;
 #include "CmdBinary.hpp"
 #include "CmdParser.hpp"
 
+//! The parse tree root of user input
+CmdBase* cmdTreeRoot = NULL;
+//! The command executor
+Executor* cmdExecutor = NULL;
+//! The exit status of rshell
+int exitStatus = 127; // 127 denotes `command not found`.
+
 string getCurrentUserName()
 {
     char* userName = getlogin();
@@ -79,15 +86,23 @@ string getPromptInfo()
            getCurrentRelativePath() + " $ ";
 }
 
+//! Handler for command 'exit'
+void exitHandler(int status)
+{
+    exitStatus = status;
+
+    // clean up
+    if (cmdTreeRoot) delete cmdTreeRoot;
+    if (cmdExecutor) delete cmdExecutor;
+}
+
 int main(int argc, char* argv[])
 {
-    string input;
-    int status = 127; // 127 denotes `command not found`.
-
-    CmdBase* cmdTreeRoot = NULL;
-    Executor* executor = new Executor();
     CmdParser parser;
+    string input;
 
+    // Set up executor with our handler
+    cmdExecutor = new Executor(exitHandler);
     while (!cin.eof())
     {
         // If stdin was not redirected, print the prompt.
@@ -96,17 +111,14 @@ int main(int argc, char* argv[])
 
         getline(cin, input); // Read the whole line.
 
-        cmdTreeRoot = parser.parse(input, executor);
+        cmdTreeRoot = parser.parse(input, cmdExecutor);
         if (cmdTreeRoot != NULL)
         {
-            status = cmdTreeRoot->execute();
+            exitStatus = cmdTreeRoot->execute();
             delete cmdTreeRoot;
         }
-
-        if (executor->isExitExecuted())
-            break;
     }
 
-    delete executor;
-    return status;
+    delete cmdExecutor;
+    return exitStatus;
 }

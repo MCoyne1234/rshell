@@ -4,14 +4,27 @@
 //! The class for executing command.
 class Executor
 {
+public:
+    //! The handler type for handling 'exit' command.
+    typedef void(*ExitHandler)(int);
+
 private:
     bool exitExecuted;
+    ExitHandler exitHandler;
 
 public:
-    Executor() : exitExecuted(false) {}
+    Executor() : exitExecuted(false), exitHandler(NULL) {}
+    /**
+     * @brief Construct a Exectuor with a ExitHandler.
+     * @param handler The exit handler.
+     */
+    Executor(ExitHandler handler) :
+            exitExecuted(false), exitHandler(handler) {}
 
     //! Whether the Executor has executed \c exit command.
     bool isExitExecuted() const { return exitExecuted; }
+
+    void setExitHandler(ExitHandler handler) { this->exitHandler = handler; }
 
     /**
      * @brief Execute a given executable with argument list.
@@ -32,7 +45,7 @@ public:
             exitExecuted = true;
 
             if (argList[1] == NULL)
-                return 0;
+                exitShell(0);
             else // Exit with status
             {
                 // Assume user input is numeric
@@ -49,12 +62,12 @@ public:
                 }
 
                 if (numeric)
-                    return atoi(argList[1]);
+                    exitShell(atoi(argList[1]));
                 else
                 {
                     std::cerr << SHELL_NAME ": exit: ";
                     std::cerr << "numeric argument required" << std::endl;
-                    return 1; // 1 for general errors
+                    exitShell(1); // 1 for general errors
                 }
             }
         }
@@ -80,21 +93,20 @@ public:
 
             pid = fork();
             if (pid < 0) // fork() failed
-                exit(printSysError("fork()"));
+                exitShell(printSysError("fork()"));
             else if (pid == 0) // Child process
             {
                 // &argList[0] denotes the vector's internal array.
                 if (execvp(executable.c_str(), &argList[0]) < 0)
                 {
                     if (errno == ENOENT) // No such file or directory
-                        exit(printSysError(executable.c_str()));
+                        exitShell(printSysError(executable.c_str()));
                     else
-                        exit(printSysError("execvp()"));
+                        exitShell(printSysError("execvp()"));
                 }
 
-                // Actually, we shall not reach here. Because execvp() should
-                // take control of our child process.
-                exit(1);
+                // Actually, we shall not reach here. Because execvp()
+                // should take control of our child process.
             }
             else // Parent process
             {
@@ -110,6 +122,9 @@ public:
                 return WEXITSTATUS(status);
             }
         }
+
+        // Actually, we shall not reach here.
+        return 1; // 1 for general errors
     }
 
 private:
@@ -124,6 +139,18 @@ private:
         std::string prefix = std::string(SHELL_NAME ": ") + cmd;
         perror(prefix.c_str());
         return errno;
+    }
+
+    /**
+     * @brief Helper function for exit, would call the exitHandler.
+     * @param status The exit status.
+     */
+    void exitShell(int status)
+    {
+        if (exitHandler != NULL)
+            exitHandler(status);
+
+        exit(status);
     }
 };
 
