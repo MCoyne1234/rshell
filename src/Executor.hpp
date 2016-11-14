@@ -21,7 +21,7 @@ public:
     Executor(ExitHandler handler) :
             exitExecuted(false), exitHandler(handler) {}
 
-    //! Whether the Executor has executed \c exit command.
+    //! Whether the Executor has executed @c exit command.
     bool isExitExecuted() const { return exitExecuted; }
 
     void setExitHandler(ExitHandler handler) { this->exitHandler = handler; }
@@ -29,13 +29,13 @@ public:
     /**
      * @brief Execute a given executable with argument list.
      *
-     * Note that the first element of \c argList (that is, \c argList[0])
-     * should have the same content as \c executable and the last element
-     * should be NULL, which is required by \c execvp().
+     * Note that the first element of @c argList (that is, @c argList[0])
+     * should have the same content as @c executable and the last element
+     * should be NULL, which is required by @c execvp().
      *
      * @param executable The executable's path or filename.
      * @param argList The argument list.
-     * @return The exit status of executing the \c executable.
+     * @return The exit status of executing the @c executable.
      */
     int execute(std::string executable,
                 std::vector<char*> argList)
@@ -48,20 +48,7 @@ public:
                 exitShell(0);
             else // Exit with status
             {
-                // Assume user input is numeric
-                bool numeric = true;
-
-                // Check if it is true
-                for (size_t i = 0; i < strlen(argList[1]); i++)
-                {
-                    if (!isdigit(argList[1][i]))
-                    {
-                        numeric = false;
-                        break;
-                    }
-                }
-
-                if (numeric)
+                if (isNumber(argList[1]))
                     exitShell(atoi(argList[1]));
                 else
                 {
@@ -140,9 +127,9 @@ public:
 private:
     /**
      * @brief Helper function for printing failure of syscalls or commands
-     *        (encapsulates \c perror).
+     *        (encapsulates @c perror).
      * @param cmd The failed command or syscall.
-     * @return The error number (\c errno).
+     * @return The error number (@c errno).
      */
     int printSysError(std::string cmd)
     {
@@ -161,6 +148,26 @@ private:
             exitHandler(status);
 
         exit(status);
+    }
+
+    /**
+     * @brief Test if a give string is a number.
+     * @param str The string to be tested.
+     * @return Whether the string is a number.
+     */
+    bool isNumber(const char* str)
+    {
+        // Negative?
+        if (*str == '-') ++str;
+        // Empty string?
+        if (*str == '\0') return false;
+
+        // Scan until end
+        while (*str != '\0')
+            if (!isdigit(*str++))
+                return false;
+
+        return true;
     }
 };
 
