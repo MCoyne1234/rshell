@@ -86,6 +86,16 @@ public:
                     return printSysError(std::string("cd: ") + argList[1]);
             }
         }
+        else if (executable == "test" || executable == "[")
+        {
+            // TODO: Implement `test` command.
+            // Copied from the man page of `test`:
+            //     The test utility evaluates the expression and, if it
+            //     evaluates to true, returns 0 (true); otherwise it
+            //     returns 1 (false).  If there is no expression,
+            //     test also returns 1 (false).
+            return 1;
+        }
         else
         {
             pid_t pid, wpid;
