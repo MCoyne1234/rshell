@@ -38,7 +38,7 @@ public:
     {
         // We need at least one argument to run the command.
         if (argList.empty())
-            return 1; // 1 for general errors
+            return 127; // 127 for command not found
         
         // execvp() requires the executable as the first element of arguments,
         // and NULL as the last element in argument list, so we need to
