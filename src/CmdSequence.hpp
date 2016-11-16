@@ -44,18 +44,6 @@ public:
         // Return the exit status of the last command
         return ret;
     }
-
-    std::string toString()
-    {
-        std::string ret;
-        for (unsigned int i = 0; i < cmds.size(); i++)
-        {
-            ret += cmds[i]->toString();
-            if (i != cmds.size() - 1)
-                ret += "; ";
-        }
-        return ret;
-    }
 };
 
 #endif

@@ -9,8 +9,6 @@ public:
 
     //! Execute corresponding command(s).
     virtual int execute() = 0;
-    //! Return printable and user-friendly representation.
-    virtual std::string toString() = 0;
 };
 
 #endif

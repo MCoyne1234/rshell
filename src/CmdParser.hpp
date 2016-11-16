@@ -26,18 +26,47 @@ public:
      * @return The root of the parse tree (even an empty sequence is parsed),
      *         or NULL on bad syntax.
      */
-    // TODO: Rewrite the parser with processing characters one by one,
-    //       since the tokenizer would "break" the quotation mark.
     CmdBase* parse(std::string input,
                    Executor* executor = NULL)
     {
         // The return value is a CmdSequence, because the input could always
         // be parsed into a sequence, even though only one command.
         CmdSequence* cmdSeq = new CmdSequence();
-
-        // Firstly, use # as the delimiter, to retrieve the statement before #.
+        
+        // Use # as the delimiter, to retrieve the statement before #.
         std::string stmt = input.substr(0, input.find_first_of("#"));
-		
+        
+        // Working on a stream is more convenient.
+        std::istringstream stream(stmt);
+        std::string token;
+        char nextChar = ' ';
+        
+        // Stacks help process different situations.
+        std::stack<CmdBase*> cmdStack;
+        std::stack<char> orderStack;
+        std::stack<char> quoteStack;
+        
+        // Store the command being processed currently.
+        CmdUnary* curCmd = new CmdUnary();
+        
+        // Scan through the whole string
+        for (; ; nextChar = stream.get())
+        {
+            // We first process quoted string.
+            if (!quoteStack.empty())
+            {
+                if (nextChar != quoteStack.top())
+                    token += nextChar;
+                else
+                    quoteStack.pop();
+            }
+            else
+            {
+                
+            }
+        }
+        
+        /*
         // Secondly, use semi-colon as the delimiter, to generate a sequence.
         std::vector<std::string> seq = tokenize(stmt, ";");
         
@@ -167,61 +196,36 @@ public:
                 cmdQueue.pop_front();
             }
         }
+         */
 
         return cmdSeq;
     }
 
 private:
     /**
-     * @brief Split string into tokens.
-     * @param string The string to be split.
-     * @param delimiter The delimiter.
-     * @param ignoreEmptyToken Whether ignore empty tokens, default true.
-     * @return A vector of tokens.
-     */
-    std::vector<std::string> tokenize(std::string string,
-                                      std::string delimiter,
-                                      bool ignoreEmptyToken = true)
-    {
-        std::vector<std::string> tokens;
-        std::string token;
-
-        size_t start = 0, end = string.find_first_of(delimiter);
-        while (end != std::string::npos)
-        {
-            token = string.substr(start, end - start);
-
-            // If a token is empty and ignoreEmptyToken is true, it would be
-            // ignored. Otherwise, push the token into vector.
-            if (!(token.empty() && ignoreEmptyToken))
-                tokens.push_back(token);
-
-            // Update start with position of the character behind delimiter.
-            start = end + 1;
-            end = string.find_first_of(delimiter, start);
-        }
-
-        // Any tokens behind the last delimiter?
-        // Or the delimiter actually does not exist in the string?
-        if (start < string.length())
-            tokens.push_back(string.substr(start));
-
-        return tokens;
-    }
-
-    /**
      * @brief Release allocated memory in a queue.
      * @tparam ValueT The value type of pointers in the queue.
      * @param[in,out] queue The queue to be released.
      */
     template <class ValueT>
-    void releaseQueue(std::deque<ValueT *> &queue)
+    void releaseQueue(std::deque<ValueT*> &queue)
     {
         while (!queue.empty())
         {
             delete queue.front();
             queue.pop_front();
         }
+    }
+
+    //! Print error with prefix "rshell: bad syntax: ".
+    void printSyntaxError(std::string format, ...)
+    {
+        va_list args;
+        va_start(args, format);
+        
+        std::cerr << SHELL_NAME ": bad syntax: ";
+        vfprintf(stderr, format.c_str(), args);
+        std::cerr << std::endl;
     }
 };
 

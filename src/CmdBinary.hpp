@@ -33,9 +33,8 @@ public:
     CmdBase *getRightCmd() const { return rightCmd; }
     void setRightCmd(CmdBase *cmd) { rightCmd = cmd; }
 
-    // In fact, we don't need rewrite these two methods.
+    // In fact, we don't need rewrite this method.
     virtual int execute() = 0;
-    virtual std::string toString() = 0;
 };
 
 //! The class for operator &&.
@@ -54,11 +53,6 @@ public:
         if (status) return 0;
         return rightCmd->execute();
     }
-
-    std::string toString()
-    {
-        return leftCmd->toString() + " && " + rightCmd->toString();
-    }
 };
 
 //! The class for operator ||.
@@ -76,11 +70,6 @@ public:
         int status = leftCmd->execute();
         if (!status) return 0;
         return rightCmd->execute();
-    }
-
-    std::string toString()
-    {
-        return leftCmd->toString() + " || " + rightCmd->toString();
     }
 };
 
