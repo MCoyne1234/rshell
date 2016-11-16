@@ -1,7 +1,8 @@
 #include <iostream>
-#include <string>
+#include <sstream>
 #include <queue>
 #include <deque>
+#include <stack>
 #include <vector>
 #include <algorithm>
 using namespace std;
@@ -11,6 +12,7 @@ using namespace std;
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <assert.h>
 #include <sys/wait.h>
 
 #define SHELL_NAME "rshell"
