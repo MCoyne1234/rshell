@@ -31,3 +31,6 @@
 # IDEA CLion
 .idea/*
 CMakeLists.txt
+
+# Xcode
+*.xcodeproj
