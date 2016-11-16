@@ -14,6 +14,8 @@ using namespace std;
 #include <errno.h>
 #include <assert.h>
 #include <sys/wait.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #define SHELL_NAME "rshell"
 

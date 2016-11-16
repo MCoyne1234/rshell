@@ -75,13 +75,78 @@ public:
         }
         else if (executable == "test" || executable == "[")
         {
-            // TODO: Implement `test` command.
-            // Copied from the man page of `test`:
-            //     The test utility evaluates the expression and, if it
-            //     evaluates to true, returns 0 (true); otherwise it
-            //     returns 1 (false).  If there is no expression,
-            //     test also returns 1 (false).
-            return 1;
+            struct stat filechecker;   //used for checking if files/directories exist,regular,and is directory
+            int truetracker=1;   //used for checking wheter to return 0 or 1 and print False or True
+            
+            if( argList.size()>1 && strcmp(argList[1],"-f")==0)   //-f case
+            {
+                if(argList.size()>2)
+                {
+                    if(stat(argList[2],&filechecker)==0 && S_ISREG(filechecker.st_mode))   //if it exists and is a regular file truetracker set to 0
+                    {
+                        truetracker=0;
+                    }
+                    else   //else truetracker is set to 1
+                    {
+                        truetracker=1; 
+                    }
+                    
+                }
+            }
+            
+            else if(argList.size()>1 && strcmp(argList[1],"-d")==0)   //-d case
+            {
+                if(argList.size()>2)
+                {
+                    if(stat(argList[2],&filechecker)==0 && S_ISDIR(filechecker.st_mode))   //if it exists and is a regular directory truetracker set to 0
+                    {
+                        truetracker=0;
+                    }
+                    else   //else truetracker is set to 1
+                    {
+                        truetracker=1;
+                    }
+                }
+            }
+            
+            else   //-e case (default case if no specification)
+            {
+                int ecase=0;   //used for determining where to start checking if file/directory exists
+                if(argList.size() >1 && strcmp(argList[1],"-e")==0)   //case where -e is specified start checking at argList[2]
+                {
+                    ecase=2;
+                }
+                
+                else   //case where -e is not specified start checking at argList[1]
+                {
+                    ecase=1;
+                }
+                
+                if(argList.size()>=2)
+                {
+                    if(stat(argList[ecase],&filechecker)==0 && (S_ISREG(filechecker.st_mode) || S_ISDIR(filechecker.st_mode)))   //if the file/directory exists set truetracker to 0
+                    {
+                        truetracker=0;
+                    }
+                    else   //else truetracker set to 1
+                    {
+                        truetracker=1;
+                    }
+                    
+                }
+                
+            }
+            
+            if(truetracker==0) //if truetracker was set to 0, then print (True) and return 0
+            {
+                cout<<"(True)"<<endl;
+                return 0;
+            }
+            else   //else print (False) and return 1
+            {
+                cout<<"(False)"<<endl;
+                return 1;
+            }
         }
         else
         {
