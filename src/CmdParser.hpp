@@ -4,20 +4,18 @@
 //! The class for parsing user input into command tree.
 class CmdParser
 {
-private:
     // On opQueue, we use `c` to denote a command.
     // Note that opCmd would only be enqueued by &&, ||, ), ; and EOF.
-    const char OpCmd = 'c';
+#define OP_CMD ('c')
     
 private:
     /**
      * @brief Release allocated memory in a queue.
      * @tparam ValueT The value type of pointers in the queue.
-     * @tparam QueueT The queue type (default: std::deque).
      * @param[in,out] queue The queue to be released.
      */
-    template <class ValueT, class QueueT = std::deque<ValueT*>>
-    void releaseQueue(QueueT& queue)
+    template <class ValueT>
+    void releaseQueue(std::deque<ValueT*>& queue)
     {
         while (!queue.empty())
         {
@@ -56,7 +54,7 @@ private:
         
         // Count commands in opQueue, for cutting off cmdQueue.
         std::ptrdiff_t cmds =
-            std::count(partOpQueue.begin(), partOpQueue.end(), OpCmd);
+            std::count(partOpQueue.begin(), partOpQueue.end(), OP_CMD);
         // The count is supposed to be greater than 0.
         assert(cmds > 0);
         // Cut off the cmdQueue.
@@ -117,7 +115,7 @@ private:
         }
         
         // Push necessary elements into original queues.
-        opQueue.push_back(OpCmd);
+        opQueue.push_back(OP_CMD);
         cmdQueue.push_back(cmdSeq);
     }
     
@@ -146,28 +144,35 @@ public:
     CmdBase* parse(std::string input,
                    Executor* executor = NULL)
     {
-#define THROW_SYNTAX_ERROR(...)                     \
-            do {                                    \
-                printSyntaxError(__VA_ARGS__);      \
-                releaseQueue<CmdBase>(cmdQueue);    \
-                delete cmdUnary;                    \
-                return NULL;                        \
+#pragma GCC diagnostic push
+        // We have to use variadic macros, however it is a feature of C99,
+        // which would throw warning. Thus, we disable this warning
+        // in this function (CmdParser::parse).
+#pragma GCC diagnostic ignored "-Wvariadic-macros"
+
+#define THROW_SYNTAX_ERROR(...)                         \
+            do {                                        \
+                printSyntaxError(__VA_ARGS__);          \
+                releaseQueue<CmdBase>(cmdQueue);        \
+                delete cmdUnary;                        \
+                return NULL;                            \
             } while(0)
         
-#define PUSH_ARGUMENT                               \
-            do {                                    \
-                if (!token.empty())                 \
-                    cmdUnary->pushArg(token);       \
-                token = "";                         \
+#define PUSH_ARGUMENT                                   \
+            do {                                        \
+                if (!token.empty())                     \
+                    cmdUnary->pushArg(token);           \
+                token = "";                             \
             } while(0)
         
-#define ENQUEUE_UNARY_COMMAND                       \
-            do {                                    \
-                if (!cmdUnary->isArgListEmpty()) {  \
-                    cmdQueue.push_back(cmdUnary);   \
-                    opQueue.push_back(OpCmd);       \
-                    cmdUnary = new CmdUnary();      \
-                }                                   \
+#define ENQUEUE_UNARY_COMMAND                           \
+            do {                                        \
+                if (!cmdUnary->isArgListEmpty()) {      \
+                    cmdQueue.push_back(cmdUnary);       \
+                    opQueue.push_back(OP_CMD);          \
+                    cmdUnary = new CmdUnary();          \
+                    cmdUnary->setExecutor(executor);    \
+                }                                       \
             } while (0)
                 
         // Use # as the delimiter, to retrieve the statement before #.
@@ -186,6 +191,7 @@ public:
         
         // Store the unary command being processed currently.
         CmdUnary* cmdUnary = new CmdUnary();
+        cmdUnary->setExecutor(executor);
         
         // Scan through the whole string.
         for (char nextChar = stream.get(); ; nextChar = stream.get())
@@ -302,7 +308,7 @@ public:
                     
                     // Since bash doesn't accept empty statement, so do we
                     // What's more, the operator before ; must be a command.
-                    if (opQueue.empty() || opQueue.back() != OpCmd)
+                    if (opQueue.empty() || opQueue.back() != OP_CMD)
                         THROW_SYNTAX_ERROR("unexpected token `;`");
                     /*
                     // At this point, the back of opQueue should not be
@@ -339,6 +345,7 @@ public:
                     // Since ENQUEUE_UNARY_COMMAND would create a new cmdUnary,
                     // we have to delete it to avoid memory leak.
                     delete cmdUnary;
+                    cmdUnary = NULL;
                     
                     // The back of opQueue should not be binary operators.
                     if (!opQueue.empty() &&
@@ -369,7 +376,11 @@ public:
 #undef THROW_SYNTAX_ERROR
 #undef PUSH_ARGUMENT
 #undef ENQUEUE_UNARY_COMMAND
+
+#pragma GCC diagnostic pop
     }
+
+#undef OP_CMD
 };
 
 #endif
