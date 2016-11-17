@@ -54,7 +54,7 @@ public:
                 {
                     std::cerr << SHELL_NAME ": exit: ";
                     std::cerr << "numeric argument required" << std::endl;
-                    exitShell(1); // 1 for general errors
+                    exitShell(128); // 128 for invalid argument to exit
                 }
             }
         }
