@@ -196,8 +196,50 @@ public:
         // Scan through the whole string.
         for (char nextChar = stream.get(); ; nextChar = stream.get())
         {
-            // We first process quoted string.
-            if (!quoteStack.empty())
+            // First, consider EOF
+            if (nextChar == EOF)
+            {
+                // Missing the right quotation mark.
+                if (!quoteStack.empty())
+                    THROW_SYNTAX_ERROR("missing closing `%c`",
+                                       quoteStack.top());
+                
+                // Push the last token.
+                PUSH_ARGUMENT;
+                // At this point, if the back of opQueue is ),
+                // then there should not be any command after that.
+                if ((!opQueue.empty() && opQueue.back() == ')') &&
+                    !cmdUnary->isArgListEmpty())
+                    THROW_SYNTAX_ERROR("unexpected token `%s`",
+                                       token.c_str());
+                
+                // At this point, the last command may not be enqueued.
+                ENQUEUE_UNARY_COMMAND;
+                // Since ENQUEUE_UNARY_COMMAND would create a new cmdUnary,
+                // we have to delete it to avoid memory leak.
+                delete cmdUnary;
+                cmdUnary = NULL;
+                
+                // The back of opQueue should not be binary operators.
+                if (!opQueue.empty() &&
+                    (opQueue.back() == '&' || opQueue.back() == '|')
+                    )
+                    THROW_SYNTAX_ERROR("unexpected token `%c%c`",
+                                       opQueue.back(), opQueue.back());
+                
+                // Still exists opening parentese?
+                if (std::find(opQueue.begin(), opQueue.end(), '(') !=
+                    opQueue.end())
+                    THROW_SYNTAX_ERROR("missing closing `)`");
+                
+                // Build the final sequence.
+                generateCmdSeq(cmdQueue, opQueue, opQueue.begin());
+                
+                // We can safely break here.
+                break;
+            }
+            // We then process quoted string.
+            else if (!quoteStack.empty())
             {
                 // Haven't met the closing quotation mark.
                 if (nextChar != quoteStack.top())
@@ -208,6 +250,7 @@ public:
                     quoteStack.pop();
                 }
             }
+            // Finally, other situations.
             else
             {
                 // Spaces or tabs
@@ -322,48 +365,6 @@ public:
                     */
                      
                     opQueue.push_back(nextChar);
-                }
-                // EOF
-                else if (nextChar == EOF)
-                {
-                    // Missing the right quotation mark.
-                    if (!quoteStack.empty())
-                        THROW_SYNTAX_ERROR("missing closing `%c`",
-                                           quoteStack.top());
-
-                    // Push the last token.
-                    PUSH_ARGUMENT;
-                    // At this point, if the back of opQueue is ),
-                    // then there should not be any command after that.
-                    if ((!opQueue.empty() && opQueue.back() == ')') &&
-                        !cmdUnary->isArgListEmpty())
-                        THROW_SYNTAX_ERROR("unexpected token `%s`",
-                                           token.c_str());
-                    
-                    // At this point, the last command may not be enqueued.
-                    ENQUEUE_UNARY_COMMAND;
-                    // Since ENQUEUE_UNARY_COMMAND would create a new cmdUnary,
-                    // we have to delete it to avoid memory leak.
-                    delete cmdUnary;
-                    cmdUnary = NULL;
-                    
-                    // The back of opQueue should not be binary operators.
-                    if (!opQueue.empty() &&
-                        (opQueue.back() == '&' || opQueue.back() == '|')
-                       )
-                        THROW_SYNTAX_ERROR("unexpected token `%c%c`",
-                                           opQueue.back(), opQueue.back());
-                    
-                    // Still exists opening parentese?
-                    if (std::find(opQueue.begin(), opQueue.end(), '(') !=
-                        opQueue.end())
-                        THROW_SYNTAX_ERROR("missing closing `)`");
-                    
-                    // Build the final sequence.
-                    generateCmdSeq(cmdQueue, opQueue, opQueue.begin());
-                    
-                    // We can safely break here.
-                    break;
                 }
                 // For other characters, stores them into token.
                 else
