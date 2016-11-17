@@ -144,19 +144,21 @@ public:
     CmdBase* parse(std::string input,
                    Executor* executor = NULL)
     {
-#pragma GCC diagnostic push
-        // We have to use variadic macros, however it is a feature of C99,
-        // which would throw warning. Thus, we disable this warning
-        // in this function (CmdParser::parse).
-#pragma GCC diagnostic ignored "-Wvariadic-macros"
-
-#define THROW_SYNTAX_ERROR(...)                         \
+        // Since we cannot use variadic macros (C99) due to the compiling flags,
+        // we have to do the following tricks.
+#define THROW_SYNTAX_ERROR_2(fmt, arg1, arg2)           \
             do {                                        \
-                printSyntaxError(__VA_ARGS__);          \
+                printSyntaxError(fmt, arg1, arg2);      \
                 releaseQueue<CmdBase>(cmdQueue);        \
                 delete cmdUnary;                        \
                 return NULL;                            \
             } while(0)
+                
+#define THROW_SYNTAX_ERROR_1(fmt, arg1)                 \
+            THROW_SYNTAX_ERROR_2(fmt, arg1, NULL)
+                
+#define THROW_SYNTAX_ERROR_0(fmt)                       \
+            THROW_SYNTAX_ERROR_2(fmt, NULL, NULL)
         
 #define PUSH_ARGUMENT                                   \
             do {                                        \
@@ -201,8 +203,8 @@ public:
             {
                 // Missing the right quotation mark.
                 if (!quoteStack.empty())
-                    THROW_SYNTAX_ERROR("missing closing `%c`",
-                                       quoteStack.top());
+                    THROW_SYNTAX_ERROR_1("missing closing `%c`",
+                                         quoteStack.top());
                 
                 // Push the last token.
                 PUSH_ARGUMENT;
@@ -210,8 +212,8 @@ public:
                 // then there should not be any command after that.
                 if ((!opQueue.empty() && opQueue.back() == ')') &&
                     !cmdUnary->isArgListEmpty())
-                    THROW_SYNTAX_ERROR("unexpected token `%s`",
-                                       token.c_str());
+                    THROW_SYNTAX_ERROR_1("unexpected token `%s`",
+                                         token.c_str());
                 
                 // At this point, the last command may not be enqueued.
                 ENQUEUE_UNARY_COMMAND;
@@ -224,13 +226,13 @@ public:
                 if (!opQueue.empty() &&
                     (opQueue.back() == '&' || opQueue.back() == '|')
                     )
-                    THROW_SYNTAX_ERROR("unexpected token `%c%c`",
-                                       opQueue.back(), opQueue.back());
+                    THROW_SYNTAX_ERROR_2("unexpected token `%c%c`",
+                                         opQueue.back(), opQueue.back());
                 
                 // Still exists opening parentese?
                 if (std::find(opQueue.begin(), opQueue.end(), '(') !=
                     opQueue.end())
-                    THROW_SYNTAX_ERROR("missing closing `)`");
+                    THROW_SYNTAX_ERROR_0("missing closing `)`");
                 
                 // Build the final sequence.
                 generateCmdSeq(cmdQueue, opQueue, opQueue.begin());
@@ -261,7 +263,7 @@ public:
                 {
                     // At this point, the back of opQueue should not be ).
                     if (!opQueue.empty() && opQueue.back() == ')')
-                        THROW_SYNTAX_ERROR("unexpected token `%c`", nextChar);
+                        THROW_SYNTAX_ERROR_1("unexpected token `%c`", nextChar);
                     
                     // At this point, the quoteStack is supposed to be empty,
                     // if, of course, the code was written correctly.
@@ -277,7 +279,7 @@ public:
                     // right parentese, and cmdUnary should be empty.
                     if (!cmdUnary->isArgListEmpty() ||
                         (!opQueue.empty() && opQueue.back() == ')'))
-                        THROW_SYNTAX_ERROR("unexpected token `(`");
+                        THROW_SYNTAX_ERROR_0("unexpected token `(`");
                     else
                         opQueue.push_back(nextChar);
                     
@@ -293,7 +295,7 @@ public:
                         std::find(opQueue.rbegin(), opQueue.rend(), '(');
                     
                     if (left == opQueue.rend())
-                        THROW_SYNTAX_ERROR("unexpected token `)`");
+                        THROW_SYNTAX_ERROR_0("unexpected token `)`");
                     
                     // The last command before ) may not be enqueued.
                     PUSH_ARGUMENT;
@@ -305,12 +307,12 @@ public:
                     if (opQueue.empty()       ||
                         opQueue.back() == '&' ||
                         opQueue.back() == '|')
-                        THROW_SYNTAX_ERROR("unexpected token `%c%c`",
-                                           opQueue.back(), opQueue.back());
+                        THROW_SYNTAX_ERROR_2("unexpected token `%c%c`",
+                                             opQueue.back(), opQueue.back());
 
                     // Since bash doesn't accept (), we do the same thing.
                     if (opQueue.back() == '(')
-                        THROW_SYNTAX_ERROR("unexpected token `)`");
+                        THROW_SYNTAX_ERROR_0("unexpected token `)`");
                     
                     opQueue.push_back(nextChar);
                     
@@ -330,13 +332,13 @@ public:
                     
                     // Another & or | is required.
                     if (curChar != nextChar)
-                        THROW_SYNTAX_ERROR("unexpected token `%c`", nextChar);
+                        THROW_SYNTAX_ERROR_1("unexpected token `%c`", nextChar);
                     
                     PUSH_ARGUMENT;
                     // At this point, cmdUnary should not be empty.
                     if (cmdUnary->isArgListEmpty())
-                        THROW_SYNTAX_ERROR("unexpected token `%c%c`",
-                                           nextChar, nextChar);
+                        THROW_SYNTAX_ERROR_2("unexpected token `%c%c`",
+                                             nextChar, nextChar);
                     
                     // Push necessary elements into queues.
                     ENQUEUE_UNARY_COMMAND;
@@ -352,7 +354,7 @@ public:
                     // Since bash doesn't accept empty statement, so do we
                     // What's more, the operator before ; must be a command.
                     if (opQueue.empty() || opQueue.back() != OP_CMD)
-                        THROW_SYNTAX_ERROR("unexpected token `;`");
+                        THROW_SYNTAX_ERROR_0("unexpected token `;`");
                     /*
                     // At this point, the back of opQueue should not be
                     // binary operators or (.
@@ -374,11 +376,12 @@ public:
 
         assert(cmdQueue.size() == 1);
         return cmdQueue.front();
-#undef THROW_SYNTAX_ERROR
+        
+#undef THROW_SYNTAX_ERROR_2
+#undef THROW_SYNTAX_ERROR_1
+#undef THROW_SYNTAX_ERROR_0
 #undef PUSH_ARGUMENT
 #undef ENQUEUE_UNARY_COMMAND
-
-#pragma GCC diagnostic pop
     }
 
 #undef OP_CMD
