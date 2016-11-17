@@ -50,7 +50,7 @@ public:
     int execute()
     {
         int status = leftCmd->execute();
-        if (status) return 0;
+        if (status) return status;
         return rightCmd->execute();
     }
 };
