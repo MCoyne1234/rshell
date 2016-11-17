@@ -61,4 +61,60 @@ exit 1 && exit 2
 EOF
 echo "- bash: Exit status:" $? 
 
+echo
+echo "Execute ls; exit"
+../bin/rshell << EOF
+ls; exit
+EOF
+echo "- bash: Exit status:" $? 
+
+echo
+echo "Execute (exit) && (echo a && echo b)"
+../bin/rshell << EOF
+Execute (exit) && (echo a && echo b)
+EOF
+echo "- bash: Exit status:" $?
+
+echo
+echo "Execute (echo a && echo b) || (exit)"
+../bin/rshell << EOF
+(echo a && echo b) || (exit)
+EOF
+echo "- bash: Exit status:" $?
+
+echo
+echo "Execute ((exit) || (echo a && echo b)) && (echo c)"
+../bin/rshell << EOF
+((exit) || (echo a && echo b)) && (echo c)
+EOF
+echo "- bash: Exit status:" $?
+
+echo
+echo "Execute ((exit) || (echo a && echo b)) && (exit)"
+../bin/rshell << EOF
+((exit) || (echo a && echo b)) && (exit)
+EOF
+echo "- bash: Exit status:" $?
+
+echo
+echo "Execute ((exit) && (echo a && echo b)) || (exit)"
+../bin/rshell << EOF
+((exit) && (echo a && echo b)) || (exit)
+EOF
+echo "- bash: Exit status:" $?
+
+echo
+echo "Execute exit; exit"
+../bin/rshell << EOF
+exit; exit
+EOF
+echo "- bash: Exit status:" $?
+
+echo
+echo "Execute (ls) && (ls -a) && (exit) || (ls); exit"
+../bin/rshell << EOF
+(ls) && (ls -a) && (exit) || (ls); exit
+EOF
+echo "- bash: Exit status:" $?
+
 exit 0
