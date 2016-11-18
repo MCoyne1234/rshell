@@ -174,6 +174,9 @@ public:
         std::istringstream stream(stmt);
         std::string token;
         
+        // Used for scanning.
+        char prevChar = ' ', nextChar = stream.get();
+        
         // Queue for storing commands.
         std::deque<CmdBase*> cmdQueue;
         // Queue for processing operators (precedence, binary and semi-colon).
@@ -186,7 +189,7 @@ public:
         cmdUnary->setExecutor(executor);
         
         // Scan through the whole string.
-        for (char nextChar = stream.get(); ; nextChar = stream.get())
+        for (; ; prevChar = nextChar, nextChar = stream.get())
         {
             // First, consider EOF
             if (nextChar == EOF)
@@ -198,10 +201,9 @@ public:
                 
                 // Push the last token.
                 PUSH_ARGUMENT;
-                // At this point, if the back of opQueue is ),
+                // At this point, if the prevChar is ),
                 // then there should not be any command after that.
-                if ((!opQueue.empty() && opQueue.back() == ')') &&
-                    !cmdUnary->isArgListEmpty())
+                if (prevChar == ')' && !cmdUnary->isArgListEmpty())
                     THROW_SYNTAX_ERROR_1("unexpected token `%s`",
                                          token.c_str());
                 
@@ -266,8 +268,7 @@ public:
                     
                     // At this point, the back of opQueue should not be
                     // right parentese, and cmdUnary should be empty.
-                    if (!cmdUnary->isArgListEmpty() ||
-                        (!opQueue.empty() && opQueue.back() == ')'))
+                    if (prevChar == ')' || !cmdUnary->isArgListEmpty())
                         THROW_SYNTAX_ERROR_0("unexpected token `(`");
                     else
                         opQueue.push_back(nextChar);
@@ -305,13 +306,13 @@ public:
                     
                     // Convert reverse iterator to an iterator.
                     // Note that since the reverse iterator points to the next
-                    // element of its base, but that is what we want.
-                    std::deque<char>::iterator start = left.base();
+                    // element of its base, so we have to manully minus 1.
+                    std::deque<char>::iterator start = --left.base();
                     
                     // Generate the command sequence among this ().
                     generateCmdSeq(cmdQueue, opQueue, start);
-                    // At this point, opQueue should be something like `(c)`.
-                    opQueue.push_back(nextChar);
+                    // At this point, the original complex statement should have
+                    // been reducted to `c`.
                     
                     // Peek the char after ), it should be &&, ||, ), ;,
                     // spaces and tabs, or EOF.
@@ -336,11 +337,8 @@ public:
                     PUSH_ARGUMENT;
                     
                     // At this point, if cmdUnary is empty,
-                    // then opQueue should not be empty.
-                    // Also, the back of opQueue should only be ),
-                    // if cmdUnary is empty.
-                    if (cmdUnary->isArgListEmpty() &&
-                        (opQueue.empty() || opQueue.back() != ')'))
+                    // then the prevChar should be ).
+                    if (cmdUnary->isArgListEmpty() && prevChar != ')')
                         THROW_SYNTAX_ERROR_2("unexpected token `%c%c`",
                                              nextChar, nextChar);
                     
@@ -356,19 +354,11 @@ public:
                     ENQUEUE_UNARY_COMMAND;
                     
                     // Since bash doesn't accept empty statement, so do we
-                    // What's more, the operator before ; must be a command.
-                    if (opQueue.empty() || opQueue.back() != OP_CMD)
+                    // What's more, if opQueue is not empty,
+                    // the operator before ; must be a command or ).
+                    if (opQueue.empty() ||
+                        (opQueue.back() != OP_CMD && prevChar != ')'))
                         THROW_SYNTAX_ERROR_0("unexpected token `;`");
-                    /*
-                    // At this point, the back of opQueue should not be
-                    // binary operators or (.
-                    if (opQueue.back() == '&' ||
-                        opQueue.back() == '|')
-                        THROW_SYNTAX_ERROR("unexpected token `%c%c`",
-                                           opQueue.back(), opQueue.back());
-                    if (opQueue.back() == '(')
-                        THROW_SYNTAX_ERROR("unexpected token `(`");
-                    */
                      
                     opQueue.push_back(nextChar);
                 }
