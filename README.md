@@ -1,5 +1,5 @@
 # rshell
-CS 100: Assignment 2 
+CS 100: Assignment 3 
 
 [![Build Status](https://travis-ci.org/coverxit/rshell.svg?branch=master)](https://travis-ci.org/coverxit/rshell)
 
@@ -13,20 +13,22 @@ rshell is a command shell written in C++, invoking syscalls `fork`, `execvp`, `w
 
 - Print a command prompt (`user@host: dir $`).
 - Handle complex commands connected by `||`, `&&`, or `;`.
+- Support precedence operators `(` and `)`.
 
 The command should have the following form:
 
 ```
-cmd        = executable [ argumentList ] [ connector cmd ]
+cmd        = [ ( ] executable [ argumentList ] [ connector cmd ] [ ) ] [ connector cmd ]
 connector  = || or && or ;
 ```
 
 Currently, we have the following built-in commands:
 
-| Command      | Description                                                              |
-|--------------|--------------------------------------------------------------------------|
-| exit [code]  | Exit rshell with a given code. If `code` is not given, `0` is used.      |
-| cd \<dir\>   | Change working directory to a given `dir`. Note that `dir` is required.  |
+| Command              | Description                                                              |
+|----------------------|--------------------------------------------------------------------------|
+| exit [code]          | Exit rshell with a given code. If `code` is not given, `0` is used.      |
+| cd \<dir\>           | Change working directory to a given `dir`. Note that `dir` is required.  |
+| test [flag] \<path\> | Test if a given `path` exists/is a dir/file based on `flag`.             |
 
 We have also applied **Doxygen** syntax in our comment, which could generate nice documentation automatically by running `doxygen` commands.
 
@@ -48,7 +50,7 @@ Run the following commands to install:
 ```
 $ git clone https://github.com/coverxit/rshell.git
 $ cd rshell
-$ git checkout hw2
+$ git checkout hw3
 $ make
 $ bin/rshell
 ```
@@ -91,6 +93,7 @@ drwxr-xr-x  10 Shindo  staff    340 10 31 02:33 src
 drwxr-xr-x   7 Shindo  staff    238 10 31 02:33 tests
 hello
 mkdir: cannot create directory ‘tests’: File exists
+word	
 On branch exec
 Your branch is up-to-date with 'origin/exec'.
 Changes not staged for commit:
@@ -107,35 +110,64 @@ Untracked files:
 no changes added to commit (use "git add" and/or "git commit -a")
 ```
 
-**4. Detect missing command before/after connector.**
+**4. Support changing precedence by using `(` and `)`.**
 
-For user input such as `ls -al &&`, rshell could detect the missing command.
+The parentheses `()` operators can be used to chagne the precedence of the returns of commands, connectors and chains of connectors. For example,
 
-- `ls -al &&` would print `rshell: bad syntax: missing command after &&`.
-- `|| ls -al` would print `rshell: bad syntax: missing command before ||`.
-- `ls &&&&&& echo oh` would print `rshell: bad syntax: missing command before &&`.
-- `ls &&& echo what` would print `rshell: bad syntax: unexpected token &`.
-- `ls &&| mkdir test` would print `rshell: bad syntax: unexpected token |`.
+```
+$ echo a && echo b || echo c && echo d
+```
+
+would print
+
+```
+a
+b
+d
+```
+
+With parentheses, we can change the precedence of connectors
+
+```
+$ (echo a && echo b) || (echo c && echo d)
+```
+
+that would print
+
+```
+a
+b
+```
+
+
+**5. Detect bad syntax.**
+
+For user input such as `ls -al &&`, rshell could detect the bad syntax.
+
+- `ls -al &&` would print `rshell: bad syntax: unexpected token '&&'`.
+- `|| ls -al` would print `rshell: bad syntax: unexpected token '||'`.
+- `ls &&&&&& echo oh` would print `rshell: bad syntax: unexpected token '&&'`.
+- `ls &&& echo what` would print `rshell: bad syntax: unexpected token ' ', near '&'`.
+- `ls &&| mkdir test` would print `rshell: bad syntax: unexpected token ' ', near '|'`.
+- `((((echo test)` would print `rshell: bad syntax: missing closing ')'`.
+- `(echo test)))` would print `rshell: bad syntax: unexpected token ')'`.
+- `(echo test)()` would print `rshell: bad syntax: unexpcted token '('`.
+- `no-connector (echo test)` would print `rshell: bad syntax: unexpected token '('`.
+- `(echo test) no-connector` would print `rshell: bad syntax: unexpected token 'no-conector'`.
+- `echo "no closing` would print `rshell: bad syntax: missing closing '"'`.
+- `echo "mix use'` would print `rshell: bad syntax: missing closing '"'`.
 
 Currently, we treat single `&` and `|` as illegal symbol, that is
 
-- `ls & echo oh` would print `rshell: bad syntax: unexpected token &`.
+- `ls & echo oh` would print `rshell: bad syntax: unexpected token ' ', near '&'`.
 
 ## Known Issues
 
-**1. Cannot proceed commands or arguments in quotes.**
-
-- `"ls"` would print `rshell: "ls": No such file or directory`
-		
-- `echo "This is a message in qutoes."` would print `"This is a message in quotes."`
-
-- `echo "ls -al; mkdir test"` would be treated as `echo "ls -al` and `mkdir test"`.
-
-**2. Cannot handle singals.**
+**1. Cannot handle singals.**
 
 Currently, rshell does not handle singals suchs as `Ctrl+C`.
 
-**3. Cannot handle TABs.**
+**2. Cannot handle TABs.**
 
 Currently, rshell does not recognize tabs, treating them the same as spaces.
 
@@ -143,22 +175,27 @@ Currently, rshell does not recognize tabs, treating them the same as spaces.
 
 ```
 [rwu016@hammer rshell]$ valgrind --tool=memcheck bin/rshell
-==1208== Memcheck, a memory error detector
-==1208== Copyright (C) 2002-2013, and GNU GPL'd, by Julian Seward et al.
-==1208== Using Valgrind-3.10.1 and LibVEX; rerun with -h for copyright info
-==1208== Command: bin/rshell
-==1208== 
-rwu016@hammer.cs.ucr.edu: rshell $ git pull
-remote: Counting objects: 4, done.
-remote: Compressing objects: 100% (1/1), done.
-remote: Total 4 (delta 3), reused 4 (delta 3), pack-reused 0
-Unpacking objects: 100% (4/4), done.
-From https://github.com/coverxit/rshell
-   4b3e383..a337bef  exec       -> origin/exec
-Updating 4b3e383..a337bef
-Fast-forward
- src/main.cpp | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+==5017== Memcheck, a memory error detector
+==5017== Copyright (C) 2002-2012, and GNU GPL'd, by Julian Seward et al.
+==5017== Using Valgrind-3.8.1 and LibVEX; rerun with -h for copyright info
+==5017== Command: bin/rshell
+==5017== 
+rwu016@hammer.cs.ucr.edu: rshell $ ls -al
+总用量 80
+drwxr-xr-x  6 rwu016 csmajs  4096 11月 18 14:33 .
+drwx--x--x 17 rwu016 csmajs  4096 11月  9 18:59 ..
+drwxr-xr-x  2 rwu016 csmajs  4096 11月 18 14:33 bin
+drwxr-xr-x  8 rwu016 csmajs  4096 11月 18 14:33 .git
+-rw-r--r--  1 rwu016 csmajs   307 11月 18 14:20 .gitignore
+-rw-r--r--  1 rwu016 csmajs 35141 11月  2 16:20 LICENSE
+-rwxr-xr-x  1 rwu016 csmajs   473 11月  2 16:20 Makefile
+-rw-r--r--  1 rwu016 csmajs  6509 11月  2 16:20 README.md
+drwxr-xr-x  2 rwu016 csmajs  4096 11月 18 14:33 src
+drwxr-xr-x  3 rwu016 csmajs  4096 11月 18 14:21 tests
+-rw-r--r--  1 rwu016 csmajs    27 11月  2 16:20 .travis.yml
+rwu016@hammer.cs.ucr.edu: rshell $ [ -f .travis.yml ] && echo "path exists"
+(True)
+path exists
 rwu016@hammer.cs.ucr.edu: rshell $ make clean
 rm -f src/*.o
 rm -rf bin
@@ -166,20 +203,20 @@ rwu016@hammer.cs.ucr.edu: rshell $ make
 g++ -c -Wall -Werror -ansi -pedantic -o src/main.o src/main.cpp
 mkdir -p bin
 g++  -o bin/rshell src/main.o
-rwu016@hammer.cs.ucr.edu: rshell $ exit
-==1208== 
-==1208== HEAP SUMMARY:
-==1208==     in use at exit: 72,704 bytes in 1 blocks
-==1208==   total heap usage: 241 allocs, 240 frees, 99,217 bytes allocated
-==1208== 
-==1208== LEAK SUMMARY:
-==1208==    definitely lost: 0 bytes in 0 blocks
-==1208==    indirectly lost: 0 bytes in 0 blocks
-==1208==      possibly lost: 0 bytes in 0 blocks
-==1208==    still reachable: 72,704 bytes in 1 blocks
-==1208==         suppressed: 0 bytes in 0 blocks
-==1208== Rerun with --leak-check=full to see details of leaked memory
-==1208== 
-==1208== For counts of detected and suppressed errors, rerun with: -v
-==1208== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+rwu016@hammer.cs.ucr.edu: rshell $ exit  
+==5017== 
+==5017== HEAP SUMMARY:
+==5017==     in use at exit: 150 bytes in 4 blocks
+==5017==   total heap usage: 324 allocs, 320 frees, 123,413 bytes allocated
+==5017== 
+==5017== LEAK SUMMARY:
+==5017==    definitely lost: 0 bytes in 0 blocks
+==5017==    indirectly lost: 0 bytes in 0 blocks
+==5017==      possibly lost: 0 bytes in 0 blocks
+==5017==    still reachable: 150 bytes in 4 blocks
+==5017==         suppressed: 0 bytes in 0 blocks
+==5017== Rerun with --leak-check=full to see details of leaked memory
+==5017== 
+==5017== For counts of detected and suppressed errors, rerun with: -v
+==5017== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
 ```
