@@ -73,6 +73,8 @@ public:
         }
         else if (executable == "test" || executable == "[")
         {
+            const int TestTrue = 0, TestFalse = 1;
+            
             // Remove the last element (NULL).
             argList.pop_back();
             
@@ -94,13 +96,13 @@ public:
             argList.erase(argList.begin());
             
             // Check if we still got arguments left?
+            // Otherwise, return false, following the 0 arguments rule.
             if (argList.empty())
             {
-                std::cerr << SHELL_NAME ": " << executable;
-                std::cerr << ": missing argument" << std::endl;
-                return 1; // 1 for general errors
+                std::cout << "(False)" << endl;
+                return TestFalse;
             }
-            
+
             // The default flag is `-e`.
             char flag = 'e';
             // Check the first argument if it is a flag.
@@ -164,12 +166,12 @@ public:
             if (testResult)
             {
                 std::cout << "(True)" << std::endl;
-                return 0;
+                return TestTrue;
             }
             else
             {
                 std::cout << "(False)" << std::endl;
-                return 1;
+                return TestFalse;
             }
         }
         else
