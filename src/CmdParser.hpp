@@ -55,8 +55,6 @@ private:
         // Count commands in opQueue, for cutting off cmdQueue.
         std::ptrdiff_t cmds =
             std::count(partOpQueue.begin(), partOpQueue.end(), OP_CMD);
-        // The count is supposed to be greater than 0.
-        assert(cmds > 0);
         // Cut off the cmdQueue.
         std::deque<CmdBase*>::iterator cmdStart =
             cmdQueue.begin() + (cmdQueue.size() - cmds);
@@ -175,7 +173,7 @@ public:
         std::string token;
         
         // Used for scanning.
-        char prevChar = ' ', nextChar = stream.get();
+        char nextChar = stream.get(), prevOp = EOF;
         
         // Queue for storing commands.
         std::deque<CmdBase*> cmdQueue;
@@ -189,7 +187,7 @@ public:
         cmdUnary->setExecutor(executor);
         
         // Scan through the whole string.
-        for (; ; prevChar = nextChar, nextChar = stream.get())
+        for (; ; nextChar = stream.get())
         {
             // First, consider EOF
             if (nextChar == EOF)
@@ -201,9 +199,9 @@ public:
                 
                 // Push the last token.
                 PUSH_ARGUMENT;
-                // At this point, if the prevChar is ),
+                // At this point, if the prevOp is ),
                 // then there should not be any command after that.
-                if (prevChar == ')' && !cmdUnary->isArgListEmpty())
+                if (prevOp == ')' && !cmdUnary->isArgListEmpty())
                     THROW_SYNTAX_ERROR_1("unexpected token `%s`",
                                          token.c_str());
                 
@@ -268,13 +266,14 @@ public:
                     
                     // At this point, the back of opQueue should not be
                     // right parentese, and cmdUnary should be empty.
-                    if (prevChar == ')' || !cmdUnary->isArgListEmpty())
+                    if (prevOp == ')' || !cmdUnary->isArgListEmpty())
                         THROW_SYNTAX_ERROR_0("unexpected token `(`");
                     else
                         opQueue.push_back(nextChar);
                     
                     // Note that we needn't enqueue the unary command here.
                     // It is supposed to be empty.
+                    prevOp = nextChar;
                 }
                 // Right parentese
                 else if (nextChar == ')')
@@ -322,6 +321,8 @@ public:
                         peek != ' ' && peek != '\t' &&
                         peek != EOF)
                         THROW_SYNTAX_ERROR_1("unexpcted token `%c`", peek);
+                    
+                    prevOp = nextChar;
                 }
                 // Binary operators
                 else if (nextChar == '&' || nextChar == '|')
@@ -337,14 +338,15 @@ public:
                     PUSH_ARGUMENT;
                     
                     // At this point, if cmdUnary is empty,
-                    // then the prevChar should be ).
-                    if (cmdUnary->isArgListEmpty() && prevChar != ')')
+                    // then the prevOp should be ).
+                    if (cmdUnary->isArgListEmpty() && prevOp != ')')
                         THROW_SYNTAX_ERROR_2("unexpected token `%c%c`",
                                              nextChar, nextChar);
                     
                     // Push necessary elements into queue.
                     ENQUEUE_UNARY_COMMAND;
                     opQueue.push_back(nextChar);
+                    prevOp = nextChar;
                 }
                 // Semi-colon
                 else if (nextChar == ';')
@@ -357,10 +359,11 @@ public:
                     // What's more, if opQueue is not empty,
                     // the operator before ; must be a command or ).
                     if (opQueue.empty() ||
-                        (opQueue.back() != OP_CMD && prevChar != ')'))
+                        (opQueue.back() != OP_CMD && prevOp != ')'))
                         THROW_SYNTAX_ERROR_0("unexpected token `;`");
                      
                     opQueue.push_back(nextChar);
+                    prevOp = nextChar;
                 }
                 // For other characters, stores them into token.
                 else

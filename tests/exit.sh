@@ -20,7 +20,7 @@ echo "- bash: Exit status:" $?
 
 echo
 echo "Execute exit ls"
-echo "[When error occured, 1 would be the default exit status]"
+echo "[When error occured, 128 would be the default exit status]"
 ../bin/rshell << EOF
 exit ls
 EOF
@@ -71,7 +71,7 @@ echo "- bash: Exit status:" $?
 echo
 echo "Execute (exit) && (echo a && echo b)"
 ../bin/rshell << EOF
-Execute (exit) && (echo a && echo b)
+(exit) && (echo a && echo b)
 EOF
 echo "- bash: Exit status:" $?
 

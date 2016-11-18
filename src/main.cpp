@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
             cout << getPromptInfo();
 
         getline(cin, input); // Read the whole line.
-
+        
         cmdTreeRoot = parser.parse(input, cmdExecutor);
         if (cmdTreeRoot != NULL)
         {

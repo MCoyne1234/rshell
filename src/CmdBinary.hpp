@@ -50,7 +50,7 @@ public:
     int execute()
     {
         int status = leftCmd->execute();
-        if (status) return status;
+        if (status != 0) return status;
         return rightCmd->execute();
     }
 };
@@ -68,7 +68,7 @@ public:
     int execute()
     {
         int status = leftCmd->execute();
-        if (!status) return 0;
+        if (status == 0) return 0;
         return rightCmd->execute();
     }
 };

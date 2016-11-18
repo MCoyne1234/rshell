@@ -36,8 +36,8 @@ public:
 
     int execute()
     {
-        // Use 1 as the default return value, to denote empty sequence.
-        int ret = 1;
+        // Use 0 as the default return value, to denote empty sequence.
+        int ret = 0;
         for (unsigned int i = 0; i < cmds.size(); i++)
             ret = cmds[i]->execute();
         
