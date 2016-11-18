@@ -203,7 +203,7 @@ public:
                 // then there should not be any command after that.
                 if (prevOp == ')' && !cmdUnary->isArgListEmpty())
                     THROW_SYNTAX_ERROR_1("unexpected token `%s`",
-                                         token.c_str());
+                                         cmdUnary->getArgList()[0].c_str());
                 
                 // At this point, the last command may not be enqueued.
                 ENQUEUE_UNARY_COMMAND;
