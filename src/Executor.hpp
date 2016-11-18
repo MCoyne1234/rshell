@@ -65,86 +65,110 @@ public:
                 std::cerr << SHELL_NAME ": cd: missing argument" << std::endl;
                 return 1; // 1 for general errors
             }
+            
+            if (chdir(argList[1]) == 0)
+                return 0;
             else
-            {
-                if (chdir(argList[1]) == 0)
-                    return 0;
-                else
-                    return printSysError(std::string("cd: ") + argList[1]);
-            }
+                return printSysError(std::string("cd: ") + argList[1]);
         }
         else if (executable == "test" || executable == "[")
         {
-            struct stat filechecker;   //used for checking if files/directories exist,regular,and is directory
-            int truetracker=1;   //used for checking wheter to return 0 or 1 and print False or True
+            // Remove the last element (NULL).
+            argList.pop_back();
             
-            if( argList.size()>1 && strcmp(argList[1],"-f")==0)   //-f case
+            // For [, check if ] is missing first.
+            if (executable == "[")
             {
-                if(argList.size()>2)
+                // We have ], so pop it.
+                if (!strcmp(argList.back(), "]"))
+                    argList.pop_back();
+                else
                 {
-                    if(stat(argList[2],&filechecker)==0 && S_ISREG(filechecker.st_mode))   //if it exists and is a regular file truetracker set to 0
-                    {
-                        truetracker=0;
-                    }
-                    else   //else truetracker is set to 1
-                    {
-                        truetracker=1; 
-                    }
-                    
+                    std::cerr << SHELL_NAME ": " << executable;
+                    std::cerr << ": missing `]`" << std::endl;
+                    return 1; // 1 for general errors
                 }
             }
             
-            else if(argList.size()>1 && strcmp(argList[1],"-d")==0)   //-d case
+            // Now, we remove the first element (the executable).
+            argList.erase(argList.begin());
+            
+            // Check if we still got arguments left?
+            if (argList.empty())
             {
-                if(argList.size()>2)
-                {
-                    if(stat(argList[2],&filechecker)==0 && S_ISDIR(filechecker.st_mode))   //if it exists and is a regular directory truetracker set to 0
-                    {
-                        truetracker=0;
-                    }
-                    else   //else truetracker is set to 1
-                    {
-                        truetracker=1;
-                    }
-                }
+                std::cerr << SHELL_NAME ": " << executable;
+                std::cerr << ": missing argument" << std::endl;
+                return 1; // 1 for general errors
             }
             
-            else   //-e case (default case if no specification)
+            // The default flag is `-e`.
+            char flag = 'e';
+            // Check the first argument if it is a flag.
+            if (argList[0][0] == '-')
             {
-                int ecase=0;   //used for determining where to start checking if file/directory exists
-                if(argList.size() >1 && strcmp(argList[1],"-e")==0)   //case where -e is specified start checking at argList[2]
+                if (strcmp(argList[0], "-e") == 0)
+                    flag = 'e';
+                else if (strcmp(argList[0], "-f") == 0)
+                    flag = 'f';
+                else if (strcmp(argList[0], "-d") == 0)
+                    flag = 'd';
+                else
                 {
-                    ecase=2;
+                    std::cerr << SHELL_NAME ": " << executable;
+                    std::cerr << ": unknown flag " << argList[0] << std::endl;
+                    return 1; // 1 for general errors
                 }
-                
-                else   //case where -e is not specified start checking at argList[1]
-                {
-                    ecase=1;
-                }
-                
-                if(argList.size()>=2)
-                {
-                    if(stat(argList[ecase],&filechecker)==0 && (S_ISREG(filechecker.st_mode) || S_ISDIR(filechecker.st_mode)))   //if the file/directory exists set truetracker to 0
-                    {
-                        truetracker=0;
-                    }
-                    else   //else truetracker set to 1
-                    {
-                        truetracker=1;
-                    }
-                    
-                }
-                
+
+                // Then we remove it.
+                argList.erase(argList.begin());
             }
             
-            if(truetracker==0) //if truetracker was set to 0, then print (True) and return 0
+            // We should have an argument denoting path.
+            if (argList.empty())
             {
-                cout<<"(True)"<<endl;
+                std::cerr << SHELL_NAME ": " << executable;
+                std::cerr << ": missing argument" << std::endl;
+                return 1; // 1 for general errors
+            }
+            
+            // Invoke syscall.
+            struct stat sb;
+            int ret = stat(argList[0], &sb);
+            // If stat failed, but errno is not `file or dir not exist`
+            if (ret == -1 && errno != ENOENT)
+                return printSysError("stat()");
+            
+            // Perform the test.
+            bool testResult = false;
+            if (ret == 0)
+            {
+                switch (flag)
+                {
+                    case 'e':
+                        testResult = S_ISDIR(sb.st_mode) || S_ISREG(sb.st_mode);
+                        break;
+                        
+                    case 'd':
+                        testResult = S_ISDIR(sb.st_mode);
+                        break;
+                        
+                    case 'f':
+                        testResult = S_ISREG(sb.st_mode);
+                        break;
+                }
+            }
+            // else - `stat` returns -1, denotes nonexistence.
+            // Since testResult if false default, we don't need extra actions.
+            
+            // Return 0 on true, 1 on false.
+            if (testResult)
+            {
+                std::cout << "(True)" << std::endl;
                 return 0;
             }
-            else   //else print (False) and return 1
+            else
             {
-                cout<<"(False)"<<endl;
+                std::cout << "(False)" << std::endl;
                 return 1;
             }
         }
