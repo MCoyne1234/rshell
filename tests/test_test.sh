@@ -17,6 +17,12 @@ echo "Execute [ -d nonexistant ]"
 echo
 EOF
 
+echo "Execute [ -e missing_closing"
+../bin/rshell << EOF
+[ -e missing_closing
+echo
+EOF
+
 echo "Execute test -d commented_command.sh"
 ../bin/rshell << EOF
 test -d commented_command.sh
@@ -117,7 +123,7 @@ EOF
 
 echo "Execute [ test -f commented_command.sh ] && echo hello"
 ../bin/rshell << EOF
-(test -f commented_command.sh) || echo hello
+(test -f commented_command.sh) && echo hello
 echo
 EOF
 
@@ -132,6 +138,8 @@ echo "Execute ( [ commented_command.sh ] ) || echo hello"
 ( [ commented_command.sh ] ) || echo hello
 echo
 EOF
+
+rm -rf hello
 
 exit 0
 
