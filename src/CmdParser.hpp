@@ -92,18 +92,7 @@ private:
                 cmdSeq->addCmd(partCmdQueue.front());
                 partCmdQueue.pop_front();
             }
-            // )
-            else if (front == ')')
-            {
-                // If we reached ), the partOpQueue shall be empty,
-                // to denote this part has ended.
-                assert(partOpQueue.empty());
-                
-                // Transfer the front of partCmdQueue into retSeq.
-                cmdSeq->addCmd(partCmdQueue.front());
-                partCmdQueue.pop_front();
-            }
-            // Note that, `(` is skipped.
+            // Note that, `(` and `)` is skipped.
         }
         
         // partCmdQueue may be not empty.
@@ -112,6 +101,7 @@ private:
             // But at this point, its size should be 1.
             assert(partCmdQueue.size() == 1);
             cmdSeq->addCmd(partCmdQueue.front());
+            partCmdQueue.pop_front();
         }
         
         // Push necessary elements into original queues.
@@ -224,14 +214,13 @@ public:
                 
                 // The back of opQueue should not be binary operators.
                 if (!opQueue.empty() &&
-                    (opQueue.back() == '&' || opQueue.back() == '|')
-                    )
+                    (opQueue.back() == '&' || opQueue.back() == '|'))
                     THROW_SYNTAX_ERROR_2("unexpected token `%c%c`",
                                          opQueue.back(), opQueue.back());
                 
                 // Still exists opening parentese?
-                if (std::find(opQueue.begin(), opQueue.end(), '(') !=
-                    opQueue.end())
+                if (std::count(opQueue.begin(), opQueue.end(), '(') !=
+                    std::count(opQueue.begin(), opQueue.end(), ')'))
                     THROW_SYNTAX_ERROR_0("missing closing `)`");
                 
                 // Build the final sequence.
@@ -301,11 +290,11 @@ public:
                     PUSH_ARGUMENT;
                     ENQUEUE_UNARY_COMMAND;
                     
-                    // At this point, the opQueue should not be empty,
+                    // At this point, the opQueue cannot be empty,
                     // and the back of opQueue should not be
                     // binary operators.
-                    if (opQueue.empty()       ||
-                        opQueue.back() == '&' ||
+                    assert(!opQueue.empty());
+                    if (opQueue.back() == '&' ||
                         opQueue.back() == '|')
                         THROW_SYNTAX_ERROR_2("unexpected token `%c%c`",
                                              opQueue.back(), opQueue.back());
@@ -314,15 +303,24 @@ public:
                     if (opQueue.back() == '(')
                         THROW_SYNTAX_ERROR_0("unexpected token `)`");
                     
-                    opQueue.push_back(nextChar);
-                    
                     // Convert reverse iterator to an iterator.
                     // Note that since the reverse iterator points to the next
-                    // element of its base, so we have to minus 1 manually.
-                    std::deque<char>::iterator start = --(left.base());
+                    // element of its base, but that is what we want.
+                    std::deque<char>::iterator start = left.base();
                     
                     // Generate the command sequence among this ().
                     generateCmdSeq(cmdQueue, opQueue, start);
+                    // At this point, opQueue should be something like `(c)`.
+                    opQueue.push_back(nextChar);
+                    
+                    // Peek the char after ), it should be &&, ||, ), ;,
+                    // spaces and tabs, or EOF.
+                    char peek = stream.peek();
+                    if (peek != '&' && peek != '|' &&
+                        peek != ')' && peek != ';' &&
+                        peek != ' ' && peek != '\t' &&
+                        peek != EOF)
+                        THROW_SYNTAX_ERROR_1("unexpcted token `%c`", peek);
                 }
                 // Binary operators
                 else if (nextChar == '&' || nextChar == '|')
@@ -332,15 +330,21 @@ public:
                     
                     // Another & or | is required.
                     if (curChar != nextChar)
-                        THROW_SYNTAX_ERROR_1("unexpected token `%c`", nextChar);
+                        THROW_SYNTAX_ERROR_2("unexpected token `%c`, near `%c`",
+                                             nextChar, curChar);
                     
                     PUSH_ARGUMENT;
-                    // At this point, cmdUnary should not be empty.
-                    if (cmdUnary->isArgListEmpty())
+                    
+                    // At this point, if cmdUnary is empty,
+                    // then opQueue should not be empty.
+                    // Also, the back of opQueue should only be ),
+                    // if cmdUnary is empty.
+                    if (cmdUnary->isArgListEmpty() &&
+                        (opQueue.empty() || opQueue.back() != ')'))
                         THROW_SYNTAX_ERROR_2("unexpected token `%c%c`",
                                              nextChar, nextChar);
                     
-                    // Push necessary elements into queues.
+                    // Push necessary elements into queue.
                     ENQUEUE_UNARY_COMMAND;
                     opQueue.push_back(nextChar);
                 }
