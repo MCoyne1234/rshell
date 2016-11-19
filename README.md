@@ -163,13 +163,17 @@ Currently, we treat single `&` and `|` as illegal symbol, that is
 
 ## Known Issues
 
-**1. Cannot handle singals.**
+**1. Cannot handle signals.**
 
-Currently, rshell does not handle singals suchs as `Ctrl+C`.
+Currently, rshell does not handle signals such as `Ctrl+C`.
 
 **2. Cannot handle TABs.**
 
 Currently, rshell does not recognize tabs, treating them the same as spaces.
+
+**3. Cannot handle arrow buttons.**
+
+Currently, rshel cannot recognize arrow buttons such as `↑`.
 
 ## Valgrind Test
 
