@@ -60,16 +60,48 @@ public:
         }
         else if (executable == "cd")
         {
+            char *chPath = argList[1];
+            
+            // No argument? Change to home dir.
             if (argList[1] == NULL)
             {
-                std::cerr << SHELL_NAME ": cd: missing argument" << std::endl;
-                return 1; // 1 for general errors
+                chPath = getenv("HOME");
+                if (chPath == NULL)
+                {
+                    // Note that getenv will not set errno.
+                    std::cerr << SHELL_NAME ": cd: HOME not set" << std::endl;
+                    return 1; // 1 for general error.
+                }
             }
+            else if (!strcmp(argList[1], "-"))
+            {
+                chPath = getenv("OLDPWD");
+                if (chPath == NULL)
+                {
+                    std::cerr << SHELL_NAME ": cd: OLDPWD not set" << std::endl;
+                    return 1; // 1 for general error.
+                }
+            }
+            // Otherwise, chPath should be argList[1],
+            // which we have set that before.
             
-            if (chdir(argList[1]) == 0)
-                return 0;
+            // Current PWD would be OLDPWD.
+            std::string oldPwd = getCurrentAbsolutePath();
+            
+            if (chdir(chPath) != 0)
+                return printSysError(std::string("cd: ") + chPath);
             else
-                return printSysError(std::string("cd: ") + argList[1]);
+            {
+                // Set PWD and OLDPWD.
+                if (-1 == setenv("PWD", getCurrentAbsolutePath().c_str(), 1))
+                    return printSysError(std::string("setenv(PWD)"));
+                
+                if (-1 == setenv("OLDPWD", oldPwd.c_str(), 1))
+                    return printSysError(std::string("setenv(OLDPWD)"));
+                
+                return 0;
+            }
+                
         }
         else if (executable == "test" || executable == "[")
         {

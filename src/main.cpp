@@ -20,13 +20,13 @@ using namespace std;
 
 #define SHELL_NAME "rshell"
 
+#include "Utility.hpp"
 #include "CmdBase.hpp"
 #include "Executor.hpp"
 #include "CmdUnary.hpp"
 #include "CmdSequence.hpp"
 #include "CmdBinary.hpp"
 #include "CmdParser.hpp"
-#include "Utility.hpp"
 
 //! The parse tree root of user input
 CmdBase* cmdTreeRoot = NULL;
