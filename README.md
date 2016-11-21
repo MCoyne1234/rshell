@@ -1,5 +1,5 @@
 # rshell
-CS 100: Assignment 3 
+CS 100: Assignment 4 
 
 [![Build Status](https://travis-ci.org/coverxit/rshell.svg?branch=master)](https://travis-ci.org/coverxit/rshell)
 
@@ -27,7 +27,7 @@ Currently, we have the following built-in commands:
 | Command              | Description                                                              |
 |----------------------|--------------------------------------------------------------------------|
 | exit [code]          | Exit rshell with a given code. If `code` is not given, `0` is used.      |
-| cd \<dir\>           | Change working directory to a given `dir`. Note that `dir` is required.  |
+| cd [dir]             | Change working directory to a given `dir`. If `dir` is not given, `$HOME` is used.                  |
 | test [flag] \<path\> | Test if a given `path` exists/is a dir/file based on `flag`.             |
 
 We have also applied **Doxygen** syntax in our comment, which could generate nice documentation automatically by running `doxygen` commands.
@@ -50,7 +50,7 @@ Run the following commands to install:
 ```
 $ git clone https://github.com/coverxit/rshell.git
 $ cd rshell
-$ git checkout hw3
+$ git checkout hw4
 $ make
 $ bin/rshell
 ```
