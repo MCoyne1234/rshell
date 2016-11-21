@@ -101,7 +101,6 @@ public:
                 
                 return 0;
             }
-                
         }
         else if (executable == "test" || executable == "[")
         {
