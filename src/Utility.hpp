@@ -61,7 +61,7 @@ string getCurrentRelativePath()
 string getPromptInfo()
 {
     return getCurrentUserName() + "@" + getCurrentHostName() + ": " +
-           getCurrentRelativePath() + " $ ";
+           getCurrentAbsolutePath() + " $ ";
 }
 
 #endif
